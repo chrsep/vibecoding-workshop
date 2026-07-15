@@ -1,8 +1,8 @@
 ---
 theme: default
-title: Vibe Coding Workshop
+title: Vibe Coding
 info: |
-  ## Vibe Coding Workshop
+  ## Vibe Coding
   Slide deck bergaya hand-drawn (Excalidraw style).
 transition: fade
 mdc: true
@@ -14,13 +14,9 @@ htmlAttrs:
 
 <div class="h-full flex flex-col items-center justify-center text-center">
 
-# Vibe Coding Workshop
+# Vibe Coding
 
 <Rough shape="line" :width="360" :height="24" color="#c25c3b" :stroke-width="3.5" :delay="400" class="-mt-2" />
-
-<p class="hand accent-red mt-4">ngoding pakai feeling, dibantu AI ✨</p>
-
-<p class="text-sm mt-12 op-70">Tekan <kbd>space</kbd> untuk mulai →</p>
 
 </div>
 
