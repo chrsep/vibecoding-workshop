@@ -1,0 +1,879 @@
+!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>How Your App Actually Works — Workshop Slide</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,640&family=Instrument+Sans:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --paper: oklch(96.5% 0.014 84);
+                --paper-deep: oklch(93% 0.02 82);
+                --ink: oklch(29% 0.022 62);
+                --ink-soft: oklch(45% 0.02 62);
+                --accent: oklch(62% 0.16 42); /* terracotta */
+                --accent-soft: oklch(90% 0.05 48);
+                --green: oklch(72% 0.14 158); /* neon db */
+                --green-deep: oklch(48% 0.1 158);
+                --line: oklch(60% 0.02 70);
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                height: 100%;
+                background: oklch(24% 0.02 60);
+                overflow: hidden;
+                font-family: "Instrument Sans", sans-serif;
+            }
+
+            /* ---- 16:9 stage, scaled to fit ---- */
+            #stageWrap {
+                position: absolute;
+                inset: 0;
+                display: grid;
+                place-items: center;
+            }
+            #stage {
+                width: 1280px;
+                height: 720px;
+                background: var(--paper);
+                position: relative;
+                overflow: hidden;
+                cursor: pointer;
+                box-shadow: 0 30px 80px oklch(0% 0 0 / 0.45);
+            }
+
+            /* subtle paper grain */
+            #stage::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        1100px 500px at 85% -10%,
+                        oklch(97.5% 0.02 95 / 0.8),
+                        transparent 60%
+                    ),
+                    radial-gradient(
+                        900px 600px at -10% 110%,
+                        oklch(94% 0.03 60 / 0.6),
+                        transparent 55%
+                    );
+                pointer-events: none;
+            }
+
+            /* ---- header ---- */
+            .kicker {
+                position: absolute;
+                top: 44px;
+                left: 64px;
+                font-size: 13px;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--ink-soft);
+                font-weight: 600;
+            }
+            .kicker b {
+                color: var(--accent);
+                font-weight: 600;
+            }
+
+            .slideNo {
+                position: absolute;
+                top: 40px;
+                right: 64px;
+                font-family: "Fraunces", serif;
+                font-size: 15px;
+                color: var(--ink-soft);
+                font-style: italic;
+            }
+
+            /* ---- diagram ---- */
+            #diagram {
+                position: absolute;
+                top: 60px;
+                left: 0;
+                width: 1280px;
+                height: 470px;
+            }
+
+            .node {
+                opacity: 0;
+                transform: translateY(16px) scale(0.94);
+                transform-box: fill-box;
+                transform-origin: center;
+            }
+            .node.on {
+                opacity: 1;
+                transform: none;
+                transition:
+                    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            .node.hot .frame {
+                stroke: var(--accent);
+                stroke-width: 2.5;
+            }
+
+            .wire {
+                fill: none;
+                stroke: var(--line);
+                stroke-width: 2;
+                opacity: 0;
+            }
+            .wire.on {
+                opacity: 1;
+            }
+            .wire.draw {
+                transition:
+                    stroke-dashoffset 0.9s cubic-bezier(0.25, 1, 0.4, 1),
+                    opacity 0.2s linear;
+                stroke-dashoffset: 0 !important;
+            }
+
+            .wireLabel {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            .wireLabel.on {
+                opacity: 1;
+                transform: none;
+                transition:
+                    opacity 0.5s ease 0.45s,
+                    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.45s;
+            }
+            .wireLabel text {
+                font-family: "Fraunces", serif;
+                font-style: italic;
+                font-size: 16.5px;
+                fill: var(--ink-soft);
+            }
+            .wireLabel rect {
+                fill: var(--paper);
+                opacity: 0.85;
+            }
+
+            .mover {
+                opacity: 0;
+            }
+            .mover.go {
+                opacity: 1;
+            }
+
+            .nodeTitle {
+                font-family: "Fraunces", serif;
+                font-weight: 600;
+                fill: var(--ink);
+            }
+            .nodeChip {
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+
+            /* ---- caption ---- */
+            #caption {
+                position: absolute;
+                left: 64px;
+                bottom: 58px;
+                width: 700px;
+            }
+            #capTitle {
+                font-family: "Fraunces", serif;
+                font-size: 44px;
+                font-weight: 640;
+                line-height: 1.05;
+                color: var(--ink);
+                margin-bottom: 14px;
+                letter-spacing: -0.01em;
+            }
+            #capBody {
+                font-size: 19px;
+                line-height: 1.5;
+                color: var(--ink-soft);
+                max-width: 640px;
+            }
+            #capBody em {
+                font-style: normal;
+                color: var(--ink);
+                font-weight: 600;
+            }
+            .capIn #capTitle {
+                animation: capRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+            }
+            .capIn #capBody {
+                animation: capRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.08s
+                    both;
+            }
+            @keyframes capRise {
+                from {
+                    opacity: 0;
+                    transform: translateY(14px);
+                }
+                to {
+                    opacity: 1;
+                    transform: none;
+                }
+            }
+
+            /* ---- progress + hint ---- */
+            #progress {
+                position: absolute;
+                right: 64px;
+                bottom: 66px;
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+            .pip {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                border: 1.5px solid var(--ink-soft);
+                background: transparent;
+                transition:
+                    background 0.3s,
+                    border-color 0.3s,
+                    transform 0.3s;
+            }
+            .pip.done {
+                background: var(--ink-soft);
+            }
+            .pip.now {
+                background: var(--accent);
+                border-color: var(--accent);
+                transform: scale(1.35);
+            }
+
+            #hint {
+                position: absolute;
+                right: 64px;
+                bottom: 36px;
+                font-size: 12.5px;
+                color: var(--ink-soft);
+                letter-spacing: 0.04em;
+                opacity: 0.75;
+            }
+            #hint kbd {
+                font-family: inherit;
+                border: 1px solid var(--line);
+                border-radius: 4px;
+                padding: 0 5px;
+                font-size: 11px;
+                background: var(--paper-deep);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .node.on,
+                .wire.draw,
+                .wireLabel.on {
+                    transition: none;
+                }
+                .capIn #capTitle,
+                .capIn #capBody {
+                    animation: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="stageWrap">
+            <div id="stage">
+                <div class="kicker">
+                    Vibe Coding Workshop · <b>How your app actually works</b>
+                </div>
+                <div class="slideNo">§6</div>
+
+                <svg id="diagram" viewBox="0 0 1280 470" fill="none">
+                    <defs>
+                        <marker
+                            id="arrow"
+                            viewBox="0 0 10 10"
+                            refX="8"
+                            refY="5"
+                            markerWidth="7"
+                            markerHeight="7"
+                            orient="auto-start-reverse"
+                        >
+                            <path d="M0 0 L10 5 L0 10 z" fill="var(--line)" />
+                        </marker>
+                    </defs>
+
+                    <!-- ================= wires ================= -->
+                    <path
+                        id="w-push"
+                        class="wire"
+                        data-step="1"
+                        marker-end="url(#arrow)"
+                        d="M258 208 C 330 208, 340 268, 404 284"
+                    />
+                    <path
+                        id="w-deploy"
+                        class="wire"
+                        data-step="2"
+                        marker-end="url(#arrow)"
+                        d="M568 268 C 630 240, 630 220, 676 200"
+                    />
+                    <path
+                        id="w-request"
+                        class="wire"
+                        data-step="3"
+                        marker-end="url(#arrow)"
+                        d="M1046 232 C 980 200, 950 178, 894 168"
+                    />
+                    <path
+                        id="w-response"
+                        class="wire"
+                        data-step="3"
+                        marker-end="url(#arrow)"
+                        d="M894 208 C 950 220, 980 250, 1046 274"
+                    />
+                    <path
+                        id="w-db"
+                        class="wire"
+                        data-step="4"
+                        marker-end="url(#arrow)"
+                        d="M778 258 C 770 320, 762 340, 752 388"
+                    />
+                    <path
+                        id="w-svc"
+                        class="wire"
+                        data-step="4"
+                        marker-end="url(#arrow)"
+                        d="M858 248 C 950 300, 972 330, 990 380"
+                    />
+
+                    <!-- wire labels -->
+                    <g class="wireLabel" data-step="1">
+                        <rect x="288" y="216" width="52" height="24" rx="4" />
+                        <text x="294" y="233">save</text>
+                    </g>
+                    <g class="wireLabel" data-step="2">
+                        <rect x="586" y="204" width="66" height="24" rx="4" />
+                        <text x="592" y="221">deploy</text>
+                    </g>
+                    <g class="wireLabel" data-step="3">
+                        <rect x="906" y="152" width="158" height="24" rx="4" />
+                        <text x="912" y="169">“what should I show?”</text>
+                    </g>
+                    <g class="wireLabel" data-step="3">
+                        <rect x="936" y="246" width="96" height="24" rx="4" />
+                        <text x="942" y="263">“here you go”</text>
+                    </g>
+                    <g class="wireLabel" data-step="4">
+                        <rect x="678" y="310" width="112" height="24" rx="4" />
+                        <text x="684" y="327">remember this</text>
+                    </g>
+                    <g class="wireLabel" data-step="4">
+                        <rect x="920" y="290" width="120" height="24" rx="4" />
+                        <text x="926" y="307">“any news today?”</text>
+                    </g>
+
+                    <!-- ================= nodes ================= -->
+                    <!-- You + AI -->
+                    <g class="node" data-step="0" data-key="0">
+                        <rect
+                            x="72"
+                            y="164"
+                            width="186"
+                            height="92"
+                            rx="14"
+                            fill="var(--paper-deep)"
+                            stroke="var(--ink)"
+                            stroke-width="2"
+                            class="frame"
+                            transform="translate(5,5)"
+                            opacity="0.25"
+                        />
+                        <rect
+                            x="72"
+                            y="164"
+                            width="186"
+                            height="92"
+                            rx="14"
+                            fill="var(--paper)"
+                            stroke="var(--ink)"
+                            stroke-width="2"
+                            class="frame"
+                        />
+                        <text class="nodeTitle" x="96" y="204" font-size="24">
+                            You + AI
+                        </text>
+                        <text
+                            class="nodeChip"
+                            x="96"
+                            y="232"
+                            font-size="12"
+                            fill="var(--accent)"
+                        >
+                            your laptop
+                        </text>
+                    </g>
+
+                    <!-- GitHub -->
+                    <g class="node" data-step="1" data-key="1">
+                        <rect
+                            x="404"
+                            y="248"
+                            width="186"
+                            height="96"
+                            rx="14"
+                            fill="var(--paper-deep)"
+                            stroke="var(--ink)"
+                            stroke-width="2"
+                            transform="translate(5,5)"
+                            opacity="0.25"
+                        />
+                        <rect
+                            x="404"
+                            y="248"
+                            width="186"
+                            height="96"
+                            rx="14"
+                            fill="var(--paper)"
+                            stroke="var(--ink)"
+                            stroke-width="2"
+                            class="frame"
+                        />
+                        <text class="nodeTitle" x="428" y="288" font-size="22">
+                            The code’s home
+                        </text>
+                        <text
+                            class="nodeChip"
+                            x="428"
+                            y="318"
+                            font-size="12"
+                            fill="var(--accent)"
+                        >
+                            github
+                        </text>
+                    </g>
+
+                    <!-- Vercel (hub) -->
+                    <g class="node" data-step="2" data-key="2">
+                        <rect
+                            x="662"
+                            y="128"
+                            width="232"
+                            height="130"
+                            rx="16"
+                            fill="var(--paper-deep)"
+                            stroke="var(--ink)"
+                            stroke-width="2"
+                            transform="translate(6,6)"
+                            opacity="0.25"
+                        />
+                        <rect
+                            x="662"
+                            y="128"
+                            width="232"
+                            height="130"
+                            rx="16"
+                            fill="var(--paper)"
+                            stroke="var(--ink)"
+                            stroke-width="2"
+                            class="frame"
+                        />
+                        <path d="M694 176 l14 -24 l14 24 z" fill="var(--ink)" />
+                        <text class="nodeTitle" x="694" y="214" font-size="24">
+                            Runs your app
+                        </text>
+                        <text
+                            class="nodeTitle"
+                            x="694"
+                            y="240"
+                            font-size="24"
+                            font-style="italic"
+                            fill="var(--accent)"
+                        >
+                            24 hours a day
+                        </text>
+                        <text
+                            class="nodeChip"
+                            x="826"
+                            y="158"
+                            font-size="12"
+                            fill="var(--accent)"
+                        >
+                            vercel
+                        </text>
+                    </g>
+
+                    <!-- Phone -->
+                    <g class="node" data-step="3" data-key="3">
+                        <rect
+                            x="1046"
+                            y="150"
+                            width="150"
+                            height="180"
+                            rx="22"
+                            fill="var(--paper-deep)"
+                            stroke="var(--ink)"
+                            stroke-width="2"
+                            transform="translate(5,5)"
+                            opacity="0.25"
+                        />
+                        <rect
+                            x="1046"
+                            y="150"
+                            width="150"
+                            height="180"
+                            rx="22"
+                            fill="var(--paper)"
+                            stroke="var(--ink)"
+                            stroke-width="2"
+                            class="frame"
+                        />
+                        <rect
+                            x="1096"
+                            y="162"
+                            width="50"
+                            height="7"
+                            rx="3.5"
+                            fill="var(--ink)"
+                            opacity=".5"
+                        />
+                        <text class="nodeTitle" x="1070" y="230" font-size="20">
+                            Anyone,
+                        </text>
+                        <text class="nodeTitle" x="1070" y="254" font-size="20">
+                            anywhere
+                        </text>
+                        <text
+                            class="nodeChip"
+                            x="1070"
+                            y="292"
+                            font-size="12"
+                            fill="var(--accent)"
+                        >
+                            their phone
+                        </text>
+                    </g>
+
+                    <!-- Neon -->
+                    <g class="node" data-step="4" data-key="4">
+                        <rect
+                            x="632"
+                            y="388"
+                            width="196"
+                            height="82"
+                            rx="14"
+                            fill="var(--paper-deep)"
+                            stroke="var(--green-deep)"
+                            stroke-width="2"
+                            transform="translate(5,5)"
+                            opacity="0.25"
+                        />
+                        <rect
+                            x="632"
+                            y="388"
+                            width="196"
+                            height="82"
+                            rx="14"
+                            fill="oklch(95% 0.04 158)"
+                            stroke="var(--green-deep)"
+                            stroke-width="2"
+                            class="frame"
+                        />
+                        <text
+                            class="nodeTitle"
+                            x="656"
+                            y="424"
+                            font-size="21"
+                            fill="var(--green-deep)"
+                        >
+                            The memory
+                        </text>
+                        <text
+                            class="nodeChip"
+                            x="656"
+                            y="450"
+                            font-size="12"
+                            fill="var(--green-deep)"
+                        >
+                            neon · database
+                        </text>
+                    </g>
+
+                    <!-- Other services -->
+                    <g class="node" data-step="4" data-key="4b">
+                        <rect
+                            x="912"
+                            y="392"
+                            width="188"
+                            height="78"
+                            rx="14"
+                            fill="none"
+                            stroke="var(--ink-soft)"
+                            stroke-width="1.6"
+                            stroke-dasharray="7 6"
+                            class="frame"
+                        />
+                        <text
+                            class="nodeTitle"
+                            x="934"
+                            y="426"
+                            font-size="19"
+                            fill="var(--ink-soft)"
+                        >
+                            Other services
+                        </text>
+                        <text
+                            x="934"
+                            y="450"
+                            font-size="13"
+                            fill="var(--ink-soft)"
+                        >
+                            news · maps · payments
+                        </text>
+                    </g>
+
+                    <!-- ================= travelling dots ================= -->
+                    <circle
+                        class="mover"
+                        data-wire="w-push"
+                        r="6"
+                        fill="var(--accent)"
+                    />
+                    <circle
+                        class="mover"
+                        data-wire="w-deploy"
+                        r="6"
+                        fill="var(--accent)"
+                    />
+                    <circle
+                        class="mover"
+                        data-wire="w-request"
+                        r="6"
+                        fill="var(--ink)"
+                    />
+                    <circle
+                        class="mover"
+                        data-wire="w-response"
+                        r="6"
+                        fill="var(--accent)"
+                    />
+                    <circle
+                        class="mover"
+                        data-wire="w-db"
+                        r="6"
+                        fill="var(--green)"
+                    />
+                    <circle
+                        class="mover"
+                        data-wire="w-svc"
+                        r="6"
+                        fill="var(--ink-soft)"
+                    />
+                </svg>
+
+                <div id="caption" class="capIn">
+                    <div id="capTitle"></div>
+                    <div id="capBody"></div>
+                </div>
+
+                <div id="progress"></div>
+                <div id="hint">
+                    click or <kbd>→</kbd> next · <kbd>←</kbd> back ·
+                    <kbd>R</kbd> restart
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const STEPS = [
+                {
+                    t: "It starts as words.",
+                    b: "You describe what you want, the AI writes the instructions — that’s <em>code</em>. But code sitting on a laptop isn’t an app yet.",
+                },
+                {
+                    t: "Code needs a safe home.",
+                    b: "Every save goes to <em>GitHub</em>, and every version is kept forever — like version history in Google Docs. It’s just storage; nothing is running yet.",
+                },
+                {
+                    t: "A computer that never sleeps.",
+                    b: "<em>Vercel</em> watches GitHub. The moment new code arrives, it grabs it and runs it around the clock. You save → the live app updates. <em>That’s the magic.</em>",
+                },
+                {
+                    t: "Someone opens your app.",
+                    b: "Their phone asks Vercel what to display. Vercel runs <em>your code</em> to work out the answer, and replies in a fraction of a second.",
+                },
+                {
+                    t: "Where memory lives.",
+                    b: "Code can’t remember on its own. It writes things down in <em>Neon</em> — a notebook that’s never thrown away — and can ask other services for news, maps, payments…",
+                },
+                {
+                    t: "That’s the whole machine.",
+                    b: "Four tools, one loop. In the demo you’ll watch <em>every one of these arrows</em> light up for real.",
+                },
+            ];
+
+            const reduced = matchMedia(
+                "(prefers-reduced-motion: reduce)",
+            ).matches;
+            let step = -1;
+            let loopTimer = null;
+
+            // fit 1280x720 stage to window
+            const stage = document.getElementById("stage");
+            function fit() {
+                const s = Math.min(innerWidth / 1280, innerHeight / 720) * 0.96;
+                stage.style.transform = `scale(${s})`;
+            }
+            addEventListener("resize", fit);
+            fit();
+
+            // prep wires for draw-in
+            document.querySelectorAll(".wire").forEach((w) => {
+                const len = w.getTotalLength();
+                w.style.strokeDasharray = len;
+                w.style.strokeDashoffset = len;
+            });
+
+            // progress pips
+            const prog = document.getElementById("progress");
+            STEPS.forEach(() => {
+                const p = document.createElement("div");
+                p.className = "pip";
+                prog.appendChild(p);
+            });
+
+            function runDot(wireId, delay = 350, dur = 1500) {
+                if (reduced) return;
+                const dot = document.querySelector(
+                    `.mover[data-wire="${wireId}"]`,
+                );
+                const path = document.getElementById(wireId);
+                if (!dot || !path) return;
+                const len = path.getTotalLength();
+                const t0 = performance.now() + delay;
+                dot.classList.add("go");
+                function frame(now) {
+                    const k = (now - t0) / dur;
+                    if (k < 0) {
+                        requestAnimationFrame(frame);
+                        return;
+                    }
+                    if (k >= 1) {
+                        dot.classList.remove("go");
+                        return;
+                    }
+                    const e = 1 - Math.pow(1 - k, 3); // ease-out-cubic
+                    const pt = path.getPointAtLength(e * len);
+                    dot.setAttribute("cx", pt.x);
+                    dot.setAttribute("cy", pt.y);
+                    requestAnimationFrame(frame);
+                }
+                requestAnimationFrame(frame);
+            }
+
+            const DOTS_BY_STEP = {
+                1: [["w-push", 350]],
+                2: [["w-deploy", 350]],
+                3: [
+                    ["w-request", 350],
+                    ["w-response", 1300],
+                ],
+                4: [
+                    ["w-db", 350],
+                    ["w-svc", 750],
+                ],
+            };
+
+            function startLoop() {
+                stopLoop();
+                if (reduced) return;
+                const all = [
+                    ["w-push", 0],
+                    ["w-deploy", 700],
+                    ["w-request", 1400],
+                    ["w-db", 1800],
+                    ["w-svc", 2000],
+                    ["w-response", 2600],
+                ];
+                const fire = () => all.forEach(([w, d]) => runDot(w, d, 1300));
+                fire();
+                loopTimer = setInterval(fire, 4200);
+            }
+            function stopLoop() {
+                if (loopTimer) {
+                    clearInterval(loopTimer);
+                    loopTimer = null;
+                }
+            }
+
+            function apply(n, forward) {
+                step = n;
+                stopLoop();
+
+                // cumulative visibility
+                document.querySelectorAll("[data-step]").forEach((el) => {
+                    const s = +el.dataset.step;
+                    const show = s <= step;
+                    el.classList.toggle("on", show);
+                    if (el.classList.contains("wire"))
+                        el.classList.toggle("draw", show);
+                });
+
+                // highlight the newest node(s)
+                document
+                    .querySelectorAll(".node")
+                    .forEach((el) =>
+                        el.classList.toggle(
+                            "hot",
+                            +el.dataset.step === step && step < 5,
+                        ),
+                    );
+
+                // caption
+                const cap = document.getElementById("caption");
+                cap.classList.remove("capIn");
+                void cap.offsetWidth;
+                document.getElementById("capTitle").textContent = STEPS[step].t;
+                document.getElementById("capBody").innerHTML = STEPS[step].b;
+                cap.classList.add("capIn");
+
+                // pips
+                document.querySelectorAll(".pip").forEach((p, i) => {
+                    p.classList.toggle("done", i < step);
+                    p.classList.toggle("now", i === step);
+                });
+
+                // dots
+                if (forward && DOTS_BY_STEP[step])
+                    DOTS_BY_STEP[step].forEach(([w, d]) => runDot(w, d));
+                if (step === 5) startLoop();
+            }
+
+            function next() {
+                if (step < STEPS.length - 1) apply(step + 1, true);
+            }
+            function prev() {
+                if (step > 0) apply(step - 1, false);
+            }
+
+            stage.addEventListener("click", next);
+            addEventListener("keydown", (e) => {
+                if (e.key === "ArrowRight" || e.key === " ") {
+                    e.preventDefault();
+                    next();
+                }
+                if (e.key === "ArrowLeft") prev();
+                if (e.key === "r" || e.key === "R") apply(0, false);
+            });
+
+            apply(0, true);
+        </script>
+    </body>
+</html>
