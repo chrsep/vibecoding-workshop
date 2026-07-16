@@ -2,7 +2,7 @@
  * Base layer only. This file styles markdown-generated elements and Slidev
  * layout internals that markup can't reach directly (raw h1/h2/h3/p/li from
  * markdown, .slidev-layout wrapper). Everything else — design tokens, the
- * `hand` / `title-grid-*` shortcuts, the dotted-grid rule — lives in
+ * `hand` shortcut, and the dotted-grid rule — lives in
  * uno.config.ts and is applied as Tailwind-style utility classes in markup.
  * Fonts (Fraunces / Instrument Sans) are loaded via the `fonts:` block in
  * slides.md frontmatter (Slidev's web-fonts provider), not an @import here.
@@ -12,9 +12,9 @@
   @apply bg-paper bg-dotted-grid text-ink font-sans;
 }
 
-/* Title slide: a broken modular field replaces the regular dotted grid. */
+/* Title slide: a full-bleed generative canvas replaces the dotted grid. */
 .slidev-layout.title-slide {
-  @apply relative overflow-hidden bg-none;
+  @apply relative isolate overflow-hidden bg-none;
 }
 
 .slidev-layout h1,

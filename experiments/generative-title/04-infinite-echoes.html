@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f4e9">
+  <title>Infinite Echoes · Vibe Coding</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f8f4e9;
+      --ink: #3a332a;
+      --ink-soft: #685f52;
+      --accent: #c25c3b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    body {
+      color: var(--ink);
+      font-family: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--paper);
+    }
+
+    main {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      padding: clamp(1.5rem, 5vw, 4rem);
+      pointer-events: none;
+    }
+
+    .lockup {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateY(-0.5rem);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      font-size: clamp(3.25rem, 8.5vw, 6rem);
+      font-weight: 600;
+      line-height: 1.02;
+      letter-spacing: -0.018em;
+      text-align: center;
+      text-wrap: balance;
+      white-space: nowrap;
+    }
+
+    .underline {
+      width: clamp(14rem, 28vw, 22.5rem);
+      height: 3px;
+      margin-top: 0.7rem;
+      border-radius: 999px;
+      background: var(--accent);
+      clip-path: polygon(0 38%, 18% 29%, 42% 43%, 67% 25%, 100% 42%, 99% 78%, 68% 70%, 39% 82%, 0 67%);
+      opacity: 0.74;
+      transform: rotate(-0.35deg);
+    }
+
+    .concept {
+      position: fixed;
+      z-index: 2;
+      left: clamp(1.25rem, 3vw, 2.25rem);
+      bottom: clamp(1.15rem, 3vw, 2rem);
+      margin: 0;
+      color: var(--ink-soft);
+      font-family: "Instrument Sans", "Avenir Next", Avenir, Helvetica, Arial, sans-serif;
+      font-size: 0.75rem;
+      font-style: normal;
+      font-weight: 500;
+      letter-spacing: 0.035em;
+      opacity: 0.76;
+      pointer-events: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 520px) {
+      h1 { font-size: clamp(3rem, 14vw, 4.5rem); }
+      .lockup { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="art" aria-hidden="true"></canvas>
+  <main aria-labelledby="title">
+    <div class="lockup">
+      <h1 id="title">Vibe Coding</h1>
+      <span class="underline" aria-hidden="true"></span>
+    </div>
+  </main>
+  <p class="concept">04 / infinite echoes</p>
+  <p id="status" class="sr-only" aria-live="polite"></p>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const PAPER = '#f8f4e9';
+      const STATIC_TIME = 19.75;
+      const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const status = document.getElementById('status');
+      let canvas = document.getElementById('art');
+      let gl = null;
+      let ctx = null;
+      let program = null;
+      let resolutionLocation = null;
+      let timeLocation = null;
+      let mode = 'webgl';
+      let cssWidth = 1;
+      let cssHeight = 1;
+      let pixelRatio = 1;
+      let frameId = 0;
+      let elapsed = 0;
+      let previous = 0;
+      let running = false;
+
+      const vertexSource = `#version 300 es
+        precision highp float;
+        void main() {
+          vec2 position;
+          if (gl_VertexID == 0) position = vec2(-1.0, -1.0);
+          else if (gl_VertexID == 1) position = vec2(3.0, -1.0);
+          else position = vec2(-1.0, 3.0);
+          gl_Position = vec4(position, 0.0, 1.0);
+        }
+      `;
+
+      const fragmentSource = `#version 300 es
+        precision highp float;
+
+        uniform vec2 u_resolution;
+        uniform float u_time;
+        out vec4 outColor;
+
+        const vec3 PAPER = vec3(0.97255, 0.95686, 0.91373);
+        const vec3 INK_SOFT = vec3(0.40784, 0.37255, 0.32157);
+        const vec3 CONNECTOR = vec3(0.58039, 0.53725, 0.47843);
+        const vec3 ACCENT = vec3(0.76078, 0.36078, 0.23137);
+
+        float roundedBox(vec2 p, vec2 bounds, float radius) {
+          vec2 q = abs(p) - bounds + radius;
+          return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - radius;
+        }
+
+        void main() {
+          vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution) / u_resolution.y;
+          float aspect = u_resolution.x / u_resolution.y;
+          float radius = length(p);
+          float angle = atan(p.y, p.x);
+          float phase = fract(u_time * 0.022);
+          float echoes = 0.0;
+          float ember = 0.0;
+
+          for (int i = 0; i < 18; i++) {
+            float generation = float(i) - 8.0 + phase;
+            float size = 0.21 * pow(1.34, generation);
+            float turn = angle + generation * 0.27 + u_time * 0.006;
+            float breathe = sin(u_time * 0.017) * 0.35;
+            float wobble = 0.052 * sin(turn * 3.0 + generation * 1.13 + breathe)
+                         + 0.018 * sin(turn * 7.0 - generation * 0.83);
+            float contour = size * (1.0 + wobble);
+            float width = 0.0008 + size * 0.00215;
+            float distanceToLine = abs(radius - contour);
+            float aa = max(fwidth(distanceToLine) * 1.35, 0.00065);
+            float line = 1.0 - smoothstep(width, width + aa, distanceToLine);
+            float boundsFade = smoothstep(0.018, 0.055, size)
+                             * (1.0 - smoothstep(0.74, 1.18, size));
+            float cadence = 0.72 + 0.28 * sin(generation * 2.17 + 1.4);
+            echoes += line * boundsFade * cadence;
+
+            float arc = 0.5 + 0.5 * cos(angle * 2.0 - u_time * 0.095 + generation * 2.4);
+            arc = pow(max(arc, 0.0), 18.0);
+            float middleGenerations = smoothstep(0.13, 0.24, size)
+                                    * (1.0 - smoothstep(0.42, 0.62, size));
+            ember += line * boundsFade * arc * middleGenerations;
+          }
+
+          float titleHalfWidth = min(0.44, aspect * 0.42);
+          float titleDistance = roundedBox(p, vec2(titleHalfWidth, 0.115), 0.052);
+          float quietZone = smoothstep(-0.015, 0.17, titleDistance);
+          float edgeFade = 1.0 - smoothstep(0.54, 0.83, radius / max(0.72, aspect * 0.52));
+          float mask = quietZone * edgeFade;
+
+          vec3 color = PAPER;
+          color = mix(color, CONNECTOR, clamp(echoes * 0.145 * mask, 0.0, 0.20));
+          color = mix(color, INK_SOFT, clamp((echoes - 0.65) * 0.03 * mask, 0.0, 0.045));
+          color = mix(color, ACCENT, clamp(ember * 0.085 * mask, 0.0, 0.075));
+          outColor = vec4(color, 1.0);
+        }
+      `;
+
+      function compile(type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          const message = gl.getShaderInfoLog(shader) || 'Unknown shader error';
+          gl.deleteShader(shader);
+          throw new Error(message);
+        }
+        return shader;
+      }
+
+      function initialiseWebGL() {
+        gl = canvas.getContext('webgl2', {
+          alpha: false,
+          antialias: false,
+          depth: false,
+          stencil: false,
+          powerPreference: 'high-performance'
+        });
+        if (!gl) return false;
+
+        const vertex = compile(gl.VERTEX_SHADER, vertexSource);
+        const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
+        program = gl.createProgram();
+        gl.attachShader(program, vertex);
+        gl.attachShader(program, fragment);
+        gl.linkProgram(program);
+        gl.deleteShader(vertex);
+        gl.deleteShader(fragment);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          throw new Error(gl.getProgramInfoLog(program) || 'Unable to link shader program');
+        }
+
+        gl.bindVertexArray(gl.createVertexArray());
+        gl.disable(gl.BLEND);
+        gl.disable(gl.DEPTH_TEST);
+        resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
+        timeLocation = gl.getUniformLocation(program, 'u_time');
+        canvas.addEventListener('webglcontextlost', (event) => {
+          event.preventDefault();
+          activateFallback('Konteks WebGL terhenti; visualisasi memakai Canvas 2D.');
+          resize();
+          start();
+        }, { once: true });
+        return true;
+      }
+
+      function activateFallback(message) {
+        mode = '2d';
+        if (gl) {
+          const replacement = canvas.cloneNode(false);
+          canvas.replaceWith(replacement);
+          canvas = replacement;
+          gl = null;
+        }
+        ctx = canvas.getContext('2d');
+        status.textContent = message || 'WebGL tidak tersedia; visualisasi memakai Canvas 2D.';
+      }
+
+      function roundedRectPath(context, x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        context.moveTo(x + r, y);
+        context.arcTo(x + width, y, x + width, y + height, r);
+        context.arcTo(x + width, y + height, x, y + height, r);
+        context.arcTo(x, y + height, x, y, r);
+        context.arcTo(x, y, x + width, y, r);
+      }
+
+      function drawFallback(time) {
+        ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        ctx.fillStyle = PAPER;
+        ctx.fillRect(0, 0, cssWidth, cssHeight);
+        const scale = Math.min(cssWidth, cssHeight);
+        const phase = (time * 0.022) % 1;
+        const cx = cssWidth / 2;
+        const cy = cssHeight / 2;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, cssWidth, cssHeight);
+        const quietWidth = Math.min(scale * 0.88, cssWidth * 0.84);
+        const quietHeight = scale * 0.28;
+        roundedRectPath(ctx, cx - quietWidth / 2, cy - quietHeight / 2, quietWidth, quietHeight, scale * 0.07);
+        ctx.clip('evenodd');
+        ctx.translate(cx, cy);
+        ctx.strokeStyle = 'rgba(148, 137, 122, 0.22)';
+        ctx.lineWidth = Math.max(0.8, scale * 0.0014);
+
+        for (let i = 0; i < 18; i += 1) {
+          const generation = i - 8 + phase;
+          const radius = scale * 0.21 * Math.pow(1.34, generation);
+          if (radius < scale * 0.018 || radius > Math.hypot(cssWidth, cssHeight)) continue;
+          ctx.beginPath();
+          for (let point = 0; point <= 180; point += 1) {
+            const angle = point / 180 * Math.PI * 2;
+            const turn = angle + generation * 0.27 + time * 0.006;
+            const wobble = 0.052 * Math.sin(turn * 3 + generation * 1.13 + Math.sin(time * 0.017) * 0.35)
+                         + 0.018 * Math.sin(turn * 7 - generation * 0.83);
+            const r = radius * (1 + wobble);
+            const x = Math.cos(angle) * r;
+            const y = Math.sin(angle) * r;
+            if (point === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function resize() {
+        cssWidth = Math.max(1, window.innerWidth);
+        cssHeight = Math.max(1, window.innerHeight);
+        pixelRatio = Math.min(window.devicePixelRatio || 1, 1.75);
+        canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
+        canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
+        render(motionQuery.matches ? STATIC_TIME : elapsed);
+      }
+
+      function render(time) {
+        if (mode === 'webgl' && gl) {
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          gl.useProgram(program);
+          gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+          gl.uniform1f(timeLocation, time);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+        } else if (ctx) {
+          drawFallback(time);
+        }
+      }
+
+      function frame(now) {
+        if (!running) return;
+        if (!previous) previous = now;
+        elapsed += Math.min((now - previous) / 1000, 0.05);
+        previous = now;
+        render(elapsed);
+        frameId = requestAnimationFrame(frame);
+      }
+
+      function stop() {
+        running = false;
+        previous = 0;
+        if (frameId) cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+
+      function start() {
+        stop();
+        if (document.hidden) return;
+        if (motionQuery.matches) {
+          elapsed = STATIC_TIME;
+          render(STATIC_TIME);
+          return;
+        }
+        running = true;
+        frameId = requestAnimationFrame(frame);
+      }
+
+      try {
+        if (!initialiseWebGL()) activateFallback();
+      } catch (error) {
+        console.warn('Infinite Echoes WebGL fallback:', error);
+        activateFallback('Shader WebGL tidak dapat dijalankan; visualisasi memakai Canvas 2D.');
+      }
+
+      resize();
+      start();
+      window.addEventListener('resize', resize, { passive: true });
+      document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+      const onMotionChange = () => start();
+      if (motionQuery.addEventListener) motionQuery.addEventListener('change', onMotionChange);
+      else motionQuery.addListener(onMotionChange);
+    })();
+  </script>
+</body>
+</html>

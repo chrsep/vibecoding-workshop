@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Vibe Coding · Recursive Constellation</title>
+    <style>
+      :root {
+        --paper: #f8f4e9;
+        --ink: #3a332a;
+        --ink-soft: #685f52;
+        --line: #94897a;
+        --accent: #c25c3b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--paper);
+      }
+
+      body {
+        position: relative;
+        color: var(--ink);
+        font-family: "Instrument Sans", "Avenir Next", Avenir, Helvetica, Arial,
+          sans-serif;
+      }
+
+      canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .title-lockup {
+        position: relative;
+        z-index: 1;
+        width: min(90vw, 48rem);
+        height: 100%;
+        margin: 0 auto;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        pointer-events: none;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "Fraunces", "Iowan Old Style", "Palatino Linotype",
+          Georgia, serif;
+        font-size: clamp(3.25rem, 8.5vw, 6rem);
+        font-weight: 600;
+        line-height: 0.98;
+        letter-spacing: -0.018em;
+        white-space: nowrap;
+        text-wrap: balance;
+      }
+
+      .underline {
+        width: min(64%, 22.5rem);
+        height: clamp(1rem, 2.2vw, 1.5rem);
+        margin-top: clamp(0.4rem, 1.25vw, 0.8rem);
+        overflow: visible;
+      }
+
+      .underline path {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 3.2;
+        stroke-linecap: round;
+        opacity: 0.88;
+      }
+
+      .concept-label {
+        position: fixed;
+        z-index: 2;
+        left: clamp(1rem, 2.4vw, 2rem);
+        bottom: clamp(1rem, 2.4vw, 1.75rem);
+        margin: 0;
+        color: var(--ink-soft);
+        font-family: "Instrument Sans", "Avenir Next", Avenir, Helvetica, Arial,
+          sans-serif;
+        font-size: clamp(0.69rem, 1vw, 0.8rem);
+        font-weight: 500;
+        line-height: 1.3;
+        letter-spacing: 0.035em;
+        opacity: 0.76;
+        pointer-events: none;
+      }
+
+      .fallback {
+        position: fixed;
+        z-index: 2;
+        right: clamp(1rem, 2.4vw, 2rem);
+        bottom: clamp(1rem, 2.4vw, 1.75rem);
+        max-width: min(21rem, 70vw);
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 0.75rem;
+        line-height: 1.4;
+        text-align: right;
+        opacity: 0;
+        transition: opacity 240ms ease-out;
+        pointer-events: none;
+      }
+
+      .no-webgl canvas {
+        display: none;
+      }
+
+      .no-webgl .fallback {
+        opacity: 0.82;
+      }
+
+      @media (max-width: 34rem) {
+        h1 {
+          font-size: clamp(3rem, 14vw, 4.5rem);
+        }
+
+        .concept-label {
+          max-width: 13rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .fallback {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="constellation" aria-hidden="true"></canvas>
+
+    <main class="title-lockup" aria-labelledby="deck-title">
+      <h1 id="deck-title">Vibe Coding</h1>
+      <svg class="underline" viewBox="0 0 360 24" aria-hidden="true">
+        <path d="M4 12.5C87 8.4 178 15.7 356 10.2" />
+      </svg>
+    </main>
+
+    <p class="concept-label">recursive constellation · 1 → 2 → 4 → ∞</p>
+    <p class="fallback" id="fallback" role="status" aria-live="polite">
+      WebGL2 tidak tersedia. Judul tetap bisa dipreview tanpa animasi.
+    </p>
+
+    <script>
+      (() => {
+        "use strict";
+
+        const canvas = document.getElementById("constellation");
+        const fallback = document.getElementById("fallback");
+        const reducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        );
+
+        const COLORS = {
+          ink: [58 / 255, 51 / 255, 42 / 255],
+          inkSoft: [104 / 255, 95 / 255, 82 / 255],
+          line: [148 / 255, 137 / 255, 122 / 255],
+        };
+
+        const SEGMENTS_PER_EDGE = 5;
+        const COMPONENTS_PER_VERTEX = 7;
+        const STATIC_TIME = 19.375;
+        const MAX_DPR = 1.65;
+        const MAX_FRAMEBUFFER_PIXELS = 4_200_000;
+
+        let gl;
+        let program;
+        let resolutionLocation;
+        let pointModeLocation;
+        let lineBuffer;
+        let pointBuffer;
+        let lineVao;
+        let pointVao;
+        let lineData = new Float32Array(0);
+        let pointData = new Float32Array(0);
+        let nodes = [];
+        let edges = [];
+        let xNow = new Float32Array(0);
+        let yNow = new Float32Array(0);
+        let cssWidth = 1;
+        let cssHeight = 1;
+        let dpr = 1;
+        let animationFrame = 0;
+        let resizeFrame = 0;
+        let elapsed = 0;
+        let previousTime = performance.now();
+        let failed = false;
+
+        function showFallback(message) {
+          failed = true;
+          stop();
+          document.documentElement.classList.add("no-webgl");
+          if (message) fallback.textContent = message;
+        }
+
+        function createShader(type, source) {
+          const shader = gl.createShader(type);
+          gl.shaderSource(shader, source);
+          gl.compileShader(shader);
+
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            const error = gl.getShaderInfoLog(shader) || "Shader gagal dikompilasi.";
+            gl.deleteShader(shader);
+            throw new Error(error);
+          }
+
+          return shader;
+        }
+
+        function createProgram() {
+          const vertexSource = `#version 300 es
+            precision highp float;
+
+            in vec2 a_position;
+            in vec4 a_color;
+            in float a_size;
+
+            uniform vec2 u_resolution;
+
+            out vec4 v_color;
+
+            void main() {
+              vec2 normalized = a_position / u_resolution;
+              vec2 clip = normalized * 2.0 - 1.0;
+              gl_Position = vec4(clip * vec2(1.0, -1.0), 0.0, 1.0);
+              gl_PointSize = a_size;
+              v_color = a_color;
+            }
+          `;
+
+          const fragmentSource = `#version 300 es
+            precision highp float;
+
+            in vec4 v_color;
+            uniform int u_point_mode;
+
+            out vec4 out_color;
+
+            void main() {
+              float alpha = v_color.a;
+
+              if (u_point_mode == 1) {
+                vec2 point = gl_PointCoord * 2.0 - 1.0;
+                float radiusSquared = dot(point, point);
+                float antialias = max(fwidth(radiusSquared), 0.035);
+                alpha *= 1.0 - smoothstep(1.0 - antialias, 1.0, radiusSquared);
+              }
+
+              if (alpha < 0.004) discard;
+              out_color = vec4(v_color.rgb, alpha);
+            }
+          `;
+
+          const vertexShader = createShader(gl.VERTEX_SHADER, vertexSource);
+          const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentSource);
+          const nextProgram = gl.createProgram();
+
+          gl.attachShader(nextProgram, vertexShader);
+          gl.attachShader(nextProgram, fragmentShader);
+          gl.linkProgram(nextProgram);
+          gl.deleteShader(vertexShader);
+          gl.deleteShader(fragmentShader);
+
+          if (!gl.getProgramParameter(nextProgram, gl.LINK_STATUS)) {
+            const error =
+              gl.getProgramInfoLog(nextProgram) || "Program WebGL gagal ditautkan.";
+            gl.deleteProgram(nextProgram);
+            throw new Error(error);
+          }
+
+          return nextProgram;
+        }
+
+        function configureVao(buffer) {
+          const vao = gl.createVertexArray();
+          const stride = COMPONENTS_PER_VERTEX * Float32Array.BYTES_PER_ELEMENT;
+          const positionLocation = gl.getAttribLocation(program, "a_position");
+          const colorLocation = gl.getAttribLocation(program, "a_color");
+          const sizeLocation = gl.getAttribLocation(program, "a_size");
+
+          gl.bindVertexArray(vao);
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
+          gl.enableVertexAttribArray(positionLocation);
+          gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, stride, 0);
+
+          gl.enableVertexAttribArray(colorLocation);
+          gl.vertexAttribPointer(
+            colorLocation,
+            4,
+            gl.FLOAT,
+            false,
+            stride,
+            2 * Float32Array.BYTES_PER_ELEMENT,
+          );
+
+          gl.enableVertexAttribArray(sizeLocation);
+          gl.vertexAttribPointer(
+            sizeLocation,
+            1,
+            gl.FLOAT,
+            false,
+            stride,
+            6 * Float32Array.BYTES_PER_ELEMENT,
+          );
+
+          gl.bindVertexArray(null);
+          return vao;
+        }
+
+        function initWebGL() {
+          gl = canvas.getContext("webgl2", {
+            alpha: false,
+            antialias: true,
+            depth: false,
+            stencil: false,
+            desynchronized: true,
+            powerPreference: "low-power",
+            preserveDrawingBuffer: false,
+          });
+
+          if (!gl) {
+            showFallback();
+            return false;
+          }
+
+          try {
+            program = createProgram();
+          } catch (error) {
+            console.error(error);
+            showFallback("WebGL2 tidak bisa diinisialisasi. Judul tetap bisa dipreview.");
+            return false;
+          }
+
+          resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+          pointModeLocation = gl.getUniformLocation(program, "u_point_mode");
+          lineBuffer = gl.createBuffer();
+          pointBuffer = gl.createBuffer();
+          lineVao = configureVao(lineBuffer);
+          pointVao = configureVao(pointBuffer);
+
+          gl.disable(gl.DEPTH_TEST);
+          gl.disable(gl.CULL_FACE);
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+          gl.clearColor(248 / 255, 244 / 255, 233 / 255, 1);
+
+          const lineRange = gl.getParameter(gl.ALIASED_LINE_WIDTH_RANGE);
+          gl.lineWidth(Math.min(Math.max(dpr, 1), lineRange[1]));
+          return true;
+        }
+
+        function mulberry32(seed) {
+          return () => {
+            let value = (seed += 0x6d2b79f5);
+            value = Math.imul(value ^ (value >>> 15), value | 1);
+            value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+            return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+
+        function mixAngle(a, b, amount) {
+          const difference = Math.atan2(Math.sin(b - a), Math.cos(b - a));
+          return a + difference * amount;
+        }
+
+        function buildTopology() {
+          const random = mulberry32(0x51a7c0de);
+          const centerX = cssWidth * 0.5;
+          const centerY = cssHeight * 0.5;
+          const shortSide = Math.min(cssWidth, cssHeight);
+          const quietRadiusX = Math.min(
+            Math.max(cssWidth * 0.29, 148),
+            370,
+          );
+          const quietRadiusY = Math.min(
+            Math.max(cssHeight * 0.155, 92),
+            150,
+          );
+          const baseLength = Math.min(136, Math.max(68, shortSide * 0.185));
+          const familyAngles = [
+            -2.94, -2.28, -1.51, -0.75, 0.06, 0.8, 1.57, 2.38,
+          ];
+
+          nodes = [];
+          edges = [];
+
+          function addBranch(parentIndex, direction, depth, family) {
+            if (depth > 5) return;
+
+            const parent = nodes[parentIndex];
+            const radialDirection = Math.atan2(
+              parent.y - centerY,
+              parent.x - centerX,
+            );
+
+            for (let side = -1; side <= 1; side += 2) {
+              const spread = 0.31 - depth * 0.018;
+              const jitter = (random() - 0.5) * 0.18;
+              let childDirection = direction + side * spread + jitter;
+              childDirection = mixAngle(
+                childDirection,
+                radialDirection + side * 0.08,
+                0.22,
+              );
+
+              const length =
+                baseLength *
+                Math.pow(0.68, depth - 1) *
+                (0.87 + random() * 0.24);
+              const childX = parent.x + Math.cos(childDirection) * length;
+              const childY = parent.y + Math.sin(childDirection) * length;
+              const childIndex = nodes.length;
+
+              nodes.push({
+                x: childX,
+                y: childY,
+                depth,
+                family,
+                phase: random() * Math.PI * 2,
+                drift: random(),
+                size: Math.max(1.65, 3.45 - depth * 0.3 + random() * 0.34),
+              });
+
+              edges.push({
+                parent: parentIndex,
+                child: childIndex,
+                depth,
+                family,
+                phase: random() * Math.PI * 2,
+                bend:
+                  side *
+                  length *
+                  (0.055 + random() * 0.045) *
+                  (random() > 0.5 ? 1 : 0.72),
+                tone: random() > 0.79 ? 1 : 0,
+              });
+
+              addBranch(childIndex, childDirection, depth + 1, family);
+            }
+          }
+
+          familyAngles.forEach((angle, family) => {
+            const angleJitter = angle + (random() - 0.5) * 0.08;
+            const rootX =
+              centerX + Math.cos(angleJitter) * (quietRadiusX + 22);
+            const rootY =
+              centerY + Math.sin(angleJitter) * (quietRadiusY + 18);
+            const rootIndex = nodes.length;
+
+            nodes.push({
+              x: rootX,
+              y: rootY,
+              depth: 0,
+              family,
+              phase: random() * Math.PI * 2,
+              drift: random(),
+              size: 3.75,
+            });
+
+            addBranch(rootIndex, angleJitter, 1, family);
+          });
+
+          xNow = new Float32Array(nodes.length);
+          yNow = new Float32Array(nodes.length);
+          lineData = new Float32Array(
+            edges.length *
+              SEGMENTS_PER_EDGE *
+              2 *
+              COMPONENTS_PER_VERTEX,
+          );
+          pointData = new Float32Array(
+            nodes.length * COMPONENTS_PER_VERTEX,
+          );
+
+          gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, lineData.byteLength, gl.DYNAMIC_DRAW);
+          gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, pointData.byteLength, gl.DYNAMIC_DRAW);
+        }
+
+        function writeVertex(array, offset, x, y, color, alpha, size) {
+          array[offset] = x;
+          array[offset + 1] = y;
+          array[offset + 2] = color[0];
+          array[offset + 3] = color[1];
+          array[offset + 4] = color[2];
+          array[offset + 5] = alpha;
+          array[offset + 6] = size;
+          return offset + COMPONENTS_PER_VERTEX;
+        }
+
+        function fillGeometry(time) {
+          for (let index = 0; index < nodes.length; index += 1) {
+            const node = nodes[index];
+            const amplitude = 0.7 + node.depth * 0.38;
+            const slowRate = 0.105 + node.drift * 0.044;
+
+            xNow[index] =
+              node.x +
+              Math.sin(time * slowRate + node.phase) * amplitude +
+              Math.sin(time * 0.053 + node.phase * 1.71) * amplitude * 0.38;
+            yNow[index] =
+              node.y +
+              Math.cos(time * (slowRate * 0.83) + node.phase * 1.13) *
+                amplitude +
+              Math.sin(time * 0.071 + node.phase * 0.66) * amplitude * 0.31;
+          }
+
+          let lineOffset = 0;
+
+          for (let index = 0; index < edges.length; index += 1) {
+            const edge = edges[index];
+            const startX = xNow[edge.parent];
+            const startY = yNow[edge.parent];
+            const endX = xNow[edge.child];
+            const endY = yNow[edge.child];
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            const distance = Math.max(1, Math.hypot(deltaX, deltaY));
+            const bend =
+              edge.bend + Math.sin(time * 0.12 + edge.phase) * (1 + edge.depth * 0.16);
+            const controlX = (startX + endX) * 0.5 - (deltaY / distance) * bend;
+            const controlY = (startY + endY) * 0.5 + (deltaX / distance) * bend;
+            const pulse =
+              0.5 +
+              0.5 *
+                Math.sin(
+                  time * (0.37 + edge.family * 0.007) -
+                    edge.depth * 1.08 +
+                    edge.phase * 0.24,
+                );
+            const depthFade = 1 - edge.depth * 0.055;
+            const alpha = (0.09 + pulse * 0.115) * depthFade;
+            const color = edge.tone ? COLORS.inkSoft : COLORS.line;
+
+            let previousX = startX;
+            let previousY = startY;
+
+            for (let segment = 1; segment <= SEGMENTS_PER_EDGE; segment += 1) {
+              const amount = segment / SEGMENTS_PER_EDGE;
+              const inverse = 1 - amount;
+              const nextX =
+                inverse * inverse * startX +
+                2 * inverse * amount * controlX +
+                amount * amount * endX;
+              const nextY =
+                inverse * inverse * startY +
+                2 * inverse * amount * controlY +
+                amount * amount * endY;
+
+              lineOffset = writeVertex(
+                lineData,
+                lineOffset,
+                previousX,
+                previousY,
+                color,
+                alpha,
+                1,
+              );
+              lineOffset = writeVertex(
+                lineData,
+                lineOffset,
+                nextX,
+                nextY,
+                color,
+                alpha,
+                1,
+              );
+
+              previousX = nextX;
+              previousY = nextY;
+            }
+          }
+
+          let pointOffset = 0;
+
+          for (let index = 0; index < nodes.length; index += 1) {
+            const node = nodes[index];
+            const pulse =
+              0.5 +
+              0.5 *
+                Math.sin(
+                  time * (0.34 + node.family * 0.009) -
+                    node.depth * 1.16 +
+                    node.phase * 0.2,
+                );
+            const alpha =
+              (0.28 + pulse * 0.34) * (1 - node.depth * 0.035);
+            const color = node.depth < 2 ? COLORS.ink : COLORS.inkSoft;
+            const size = node.size * dpr * (0.94 + pulse * 0.12);
+
+            pointOffset = writeVertex(
+              pointData,
+              pointOffset,
+              xNow[index],
+              yNow[index],
+              color,
+              alpha,
+              size,
+            );
+          }
+        }
+
+        function render(time) {
+          if (failed) return;
+
+          fillGeometry(time);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.useProgram(program);
+          gl.uniform2f(resolutionLocation, cssWidth, cssHeight);
+
+          gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
+          gl.bufferSubData(gl.ARRAY_BUFFER, 0, lineData);
+          gl.bindVertexArray(lineVao);
+          gl.uniform1i(pointModeLocation, 0);
+          gl.drawArrays(gl.LINES, 0, lineData.length / COMPONENTS_PER_VERTEX);
+
+          gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+          gl.bufferSubData(gl.ARRAY_BUFFER, 0, pointData);
+          gl.bindVertexArray(pointVao);
+          gl.uniform1i(pointModeLocation, 1);
+          gl.drawArrays(gl.POINTS, 0, pointData.length / COMPONENTS_PER_VERTEX);
+
+          gl.bindVertexArray(null);
+        }
+
+        function stop() {
+          if (animationFrame) cancelAnimationFrame(animationFrame);
+          animationFrame = 0;
+        }
+
+        function tick(now) {
+          if (failed || reducedMotion.matches || document.hidden) {
+            animationFrame = 0;
+            return;
+          }
+
+          const delta = Math.min((now - previousTime) / 1000, 0.05);
+          previousTime = now;
+          elapsed += Math.max(0, delta);
+          render(elapsed);
+          animationFrame = requestAnimationFrame(tick);
+        }
+
+        function start() {
+          if (
+            failed ||
+            reducedMotion.matches ||
+            document.hidden ||
+            animationFrame
+          ) {
+            return;
+          }
+
+          previousTime = performance.now();
+          animationFrame = requestAnimationFrame(tick);
+        }
+
+        function resize() {
+          if (failed) return;
+
+          cssWidth = Math.max(1, window.innerWidth);
+          cssHeight = Math.max(1, window.innerHeight);
+          const pixelBudgetDpr = Math.sqrt(
+            MAX_FRAMEBUFFER_PIXELS / (cssWidth * cssHeight),
+          );
+          dpr = Math.max(
+            0.55,
+            Math.min(window.devicePixelRatio || 1, MAX_DPR, pixelBudgetDpr),
+          );
+          canvas.width = Math.max(1, Math.round(cssWidth * dpr));
+          canvas.height = Math.max(1, Math.round(cssHeight * dpr));
+
+          buildTopology();
+          render(reducedMotion.matches ? STATIC_TIME : elapsed);
+        }
+
+        function scheduleResize() {
+          if (resizeFrame) cancelAnimationFrame(resizeFrame);
+          resizeFrame = requestAnimationFrame(() => {
+            resizeFrame = 0;
+            resize();
+          });
+        }
+
+        function syncMotionPreference() {
+          stop();
+          if (reducedMotion.matches) {
+            render(STATIC_TIME);
+          } else {
+            start();
+          }
+        }
+
+        canvas.addEventListener("webglcontextlost", (event) => {
+          event.preventDefault();
+          showFallback(
+            "Konteks WebGL terhenti. Muat ulang halaman untuk menjalankan animasi.",
+          );
+        });
+
+        window.addEventListener("resize", scheduleResize, { passive: true });
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            stop();
+          } else if (!reducedMotion.matches) {
+            start();
+          }
+        });
+
+        if (typeof reducedMotion.addEventListener === "function") {
+          reducedMotion.addEventListener("change", syncMotionPreference);
+        } else {
+          reducedMotion.addListener(syncMotionPreference);
+        }
+
+        if (initWebGL()) {
+          resize();
+          if (!reducedMotion.matches) start();
+        }
+      })();
+    </script>
+  </body>
+</html>

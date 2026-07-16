@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Generative Title Experiments</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f8f4e9;
+        --paper-deep: #eee7d6;
+        --ink: #3a332a;
+        --ink-soft: #685f52;
+        --line: #94897a;
+        --accent: #c25c3b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background: var(--paper);
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding: clamp(2rem, 6vw, 5.5rem);
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+      }
+
+      main {
+        width: min(58rem, 100%);
+        margin-inline: auto;
+      }
+
+      header {
+        max-width: 45rem;
+        margin-bottom: clamp(3rem, 8vw, 6.5rem);
+      }
+
+      h1 {
+        max-width: 11ch;
+        margin: 0;
+        color: var(--ink);
+        font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(3rem, 8vw, 5.75rem);
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        line-height: 0.96;
+        text-wrap: balance;
+      }
+
+      header p {
+        max-width: 60ch;
+        margin: 1.5rem 0 0;
+        color: var(--ink-soft);
+        font-size: clamp(1rem, 2vw, 1.15rem);
+        line-height: 1.6;
+        text-wrap: pretty;
+      }
+
+      ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: experiments;
+        border-top: 1px solid color-mix(in srgb, var(--line) 52%, transparent);
+      }
+
+      li {
+        counter-increment: experiments;
+        display: grid;
+        grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+        gap: clamp(0.8rem, 2.2vw, 1.8rem);
+        align-items: baseline;
+        padding-block: clamp(1.25rem, 3vw, 2rem);
+        border-bottom: 1px solid color-mix(in srgb, var(--line) 52%, transparent);
+      }
+
+      li::before {
+        content: counter(experiments, decimal-leading-zero);
+        color: var(--accent);
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 0.95rem;
+        font-style: italic;
+      }
+
+      a {
+        color: var(--ink);
+        font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(1.35rem, 3vw, 2rem);
+        font-weight: 600;
+        line-height: 1.1;
+        text-decoration: none;
+        text-underline-offset: 0.24em;
+      }
+
+      a:hover,
+      a:focus-visible {
+        color: var(--accent);
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+      }
+
+      a:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 6px;
+      }
+
+      .hint {
+        color: var(--ink-soft);
+        font-size: 0.82rem;
+        white-space: nowrap;
+      }
+
+      footer {
+        margin-top: 2rem;
+        color: var(--ink-soft);
+        font-size: 0.82rem;
+      }
+
+      @media (max-width: 38rem) {
+        li {
+          grid-template-columns: 1.8rem minmax(0, 1fr);
+        }
+
+        .hint {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Generative title experiments</h1>
+        <p>
+          Five continuously running WebGL studies for the opening slide. Each
+          file is self-contained, uses the workshop palette, and keeps the
+          title readable from the center of the room.
+        </p>
+      </header>
+
+      <ol aria-label="Generative art experiments">
+        <li>
+          <a href="./01-recursive-constellation.html">Recursive Constellation</a>
+          <span class="hint">open study</span>
+        </li>
+        <li>
+          <a href="./02-exponential-spiral.html">Exponential Spiral</a>
+          <span class="hint">open study</span>
+        </li>
+        <li>
+          <a href="./03-branching-thought-tree.html">Branching Thought Tree</a>
+          <span class="hint">open study</span>
+        </li>
+        <li>
+          <a href="./04-infinite-echoes.html">Infinite Echoes</a>
+          <span class="hint">open study</span>
+        </li>
+        <li>
+          <a href="./05-feedback-field.html">Feedback Field</a>
+          <span class="hint">open study</span>
+        </li>
+      </ol>
+
+      <footer>Press the browser back button to return to this index.</footer>
+    </main>
+  </body>
+</html>

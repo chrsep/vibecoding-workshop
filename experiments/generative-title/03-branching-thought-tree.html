@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Branching Thought Tree · Vibe Coding</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f8f4e9;
+      --ink: #3a332a;
+      --ink-soft: #685f52;
+      --accent: #c25c3b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    body {
+      color: var(--ink);
+      font-family: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--paper);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      isolation: isolate;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .title-lockup {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(0.7rem, 1.7vh, 1.1rem);
+      width: min(88vw, 48rem);
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .title-lockup::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      top: 50%;
+      left: 50%;
+      width: min(78vw, 54rem);
+      height: clamp(13rem, 27vw, 18rem);
+      transform: translate(-50%, -50%);
+      background: radial-gradient(
+        ellipse at center,
+        rgba(248, 244, 233, 1) 0%,
+        rgba(248, 244, 233, 0.99) 38%,
+        rgba(248, 244, 233, 0.82) 52%,
+        rgba(248, 244, 233, 0.38) 65%,
+        rgba(248, 244, 233, 0) 79%
+      );
+      pointer-events: none;
+    }
+
+    .title-lockup > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      font-size: clamp(3.25rem, 8.5vw, 6rem);
+      font-weight: 600;
+      line-height: 0.98;
+      letter-spacing: -0.018em;
+      text-wrap: balance;
+    }
+
+    .underline {
+      width: clamp(14rem, 28vw, 22.5rem);
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      opacity: 0.72;
+      transform: rotate(-0.8deg);
+      transform-origin: center;
+    }
+
+    .concept {
+      position: absolute;
+      bottom: max(1.25rem, env(safe-area-inset-bottom));
+      left: max(1.25rem, env(safe-area-inset-left));
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1.4;
+      letter-spacing: 0.035em;
+    }
+
+    .status {
+      position: absolute;
+      top: calc(50% + clamp(4.9rem, 10vw, 7rem));
+      left: 50%;
+      display: none;
+      width: min(84vw, 34rem);
+      margin: 0;
+      transform: translateX(-50%);
+      color: var(--ink-soft);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      text-align: center;
+      text-wrap: pretty;
+    }
+
+    .status[data-visible="true"] {
+      display: block;
+    }
+
+    @media (max-width: 34rem) {
+      .concept {
+        right: max(1.25rem, env(safe-area-inset-right));
+        text-align: center;
+      }
+    }
+
+    @media (max-aspect-ratio: 1 / 1) {
+      .title-lockup::before {
+        width: 78vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="art" aria-hidden="true"></canvas>
+
+  <main aria-labelledby="page-title">
+    <div class="title-lockup">
+      <h1 id="page-title">Vibe Coding</h1>
+      <span class="underline" aria-hidden="true"></span>
+    </div>
+
+    <p class="concept">Branching thought tree · four-corner recursive WebGL study</p>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </main>
+
+  <noscript>
+    <p style="position:fixed;left:50%;bottom:4rem;transform:translateX(-50%);margin:0;color:#685f52;font:0.875rem/1.5 system-ui,sans-serif;text-align:center;">
+      JavaScript is required to preview this generative study.
+    </p>
+  </noscript>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const canvas = document.querySelector('#art');
+      const status = document.querySelector('#status');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const gl = canvas.getContext('webgl2', {
+        alpha: false,
+        antialias: true,
+        depth: false,
+        stencil: false,
+        powerPreference: 'high-performance',
+      });
+
+      if (!gl) {
+        canvas.hidden = true;
+        status.textContent = 'This study needs a browser with WebGL 2 enabled.';
+        status.dataset.visible = 'true';
+        return;
+      }
+
+      const vertexSource = `#version 300 es
+        precision highp float;
+        precision highp int;
+
+        layout(location = 0) in vec2 a_start;
+        layout(location = 1) in vec2 a_end;
+        layout(location = 2) in vec4 a_meta;
+        layout(location = 3) in float a_jitter;
+
+        uniform float u_time;
+        uniform float u_dpr;
+        uniform vec2 u_resolution;
+
+        out float v_alpha;
+        out float v_edge;
+        out float v_tone;
+
+        vec2 toClip(vec2 point) {
+          return point;
+        }
+
+        void main() {
+          float depth = a_meta.x;
+          float layerOffset = a_meta.y;
+          float width = a_meta.z;
+          float tone = a_meta.w;
+          float phase = fract(u_time * 0.0165 + layerOffset);
+
+          float birth = 0.045 + ((depth + a_jitter * 0.46) / 11.46) * 0.65;
+          float growth = 1.0;
+          float lifeCycle = smoothstep(0.012, 0.085, phase)
+            * (1.0 - smoothstep(0.82, 0.985, phase));
+          float life = 0.38 + 0.62 * lifeCycle;
+
+          vec2 growingEnd = mix(a_start, a_end, growth);
+
+          int corner = gl_VertexID % 6;
+          float along = 0.0;
+          float side = -1.0;
+
+          if (corner == 1) {
+            side = 1.0;
+          } else if (corner == 2 || corner == 4) {
+            along = 1.0;
+            side = 1.0;
+          } else if (corner == 5) {
+            along = 1.0;
+            side = -1.0;
+          }
+
+          vec2 startClip = toClip(a_start);
+          vec2 endClip = toClip(growingEnd);
+          vec2 pointClip = mix(startClip, endClip, along);
+          vec2 screenDirection = (endClip - startClip) * u_resolution;
+          float directionLength = max(length(screenDirection), 0.0001);
+          vec2 normalPixels = vec2(-screenDirection.y, screenDirection.x) / directionLength;
+          vec2 normalClip = normalPixels * (width * u_dpr) * 2.0 / u_resolution;
+          pointClip += normalClip * side * 0.5;
+
+          float edge = max(abs(pointClip.x), abs(pointClip.y));
+          float edgeMask = 1.0 - smoothstep(0.86, 1.04, edge);
+
+          v_alpha = life
+            * mix(0.46, 0.18, depth / 11.0)
+            * (0.82 + 0.18 * sin(a_jitter * 21.0 + u_time * 0.1))
+            * edgeMask;
+          v_edge = side;
+          v_tone = tone;
+          gl_Position = vec4(pointClip, 0.0, 1.0);
+        }
+      `;
+
+      const fragmentSource = `#version 300 es
+        precision highp float;
+        precision highp int;
+
+        in float v_alpha;
+        in float v_edge;
+        in float v_tone;
+
+        out vec4 outColor;
+
+        void main() {
+          float coverage = 1.0 - smoothstep(0.72, 1.0, abs(v_edge));
+          vec3 ink = vec3(0.2275, 0.2000, 0.1647);
+          vec3 inkSoft = vec3(0.4078, 0.3725, 0.3216);
+          vec3 connector = vec3(0.5804, 0.5373, 0.4784);
+          vec3 color = mix(connector, inkSoft, smoothstep(0.12, 0.82, v_tone));
+          color = mix(color, ink, 0.08 * smoothstep(0.9, 1.0, v_tone));
+          outColor = vec4(color, v_alpha * coverage);
+        }
+      `;
+
+      function compile(type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          const message = gl.getShaderInfoLog(shader) || 'Unknown shader error';
+          gl.deleteShader(shader);
+          throw new Error(message);
+        }
+
+        return shader;
+      }
+
+      function createProgram() {
+        const vertex = compile(gl.VERTEX_SHADER, vertexSource);
+        const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
+        const program = gl.createProgram();
+        gl.attachShader(program, vertex);
+        gl.attachShader(program, fragment);
+        gl.linkProgram(program);
+        gl.deleteShader(vertex);
+        gl.deleteShader(fragment);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          const message = gl.getProgramInfoLog(program) || 'Unknown program error';
+          gl.deleteProgram(program);
+          throw new Error(message);
+        }
+
+        return program;
+      }
+
+      function mulberry32(seed) {
+        let value = seed >>> 0;
+        return () => {
+          value += 0x6D2B79F5;
+          let result = value;
+          result = Math.imul(result ^ (result >>> 15), result | 1);
+          result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
+          return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function buildSegments() {
+        const values = [];
+        const maxDepth = 11;
+
+        const directions = [
+          { angle: Math.PI * 0.75, rootLength: 0.29 },
+          { angle: Math.PI * 0.25, rootLength: 0.29 },
+          { angle: Math.PI * -0.75, rootLength: 0.29 },
+          { angle: Math.PI * -0.25, rootLength: 0.29 },
+        ];
+
+        directions.forEach((direction, directionIndex) => {
+          const random = mulberry32(1741 + directionIndex * 991);
+          const rootX = (random() - 0.5) * 0.018;
+          const rootY = (random() - 0.5) * 0.018;
+          const rootAngle = direction.angle + (random() - 0.5) * 0.075;
+
+          function branch(x, y, angle, length, depth) {
+            const endX = x + Math.cos(angle) * length;
+            const endY = y + Math.sin(angle) * length;
+
+            const width = 3.4 * Math.pow(0.83, depth) + 0.55;
+            const jitter = random();
+            const tone = Math.min(1, 0.12 + random() * 0.72 + depth * 0.018);
+            const layerOffset = directionIndex / directions.length;
+
+            values.push(
+              x, y,
+              endX, endY,
+              depth, layerOffset, width, tone,
+              jitter
+            );
+
+            if (depth >= maxDepth) return;
+
+            const spread = 0.28 + depth * 0.012 + random() * 0.06;
+            const shrinkA = 0.78 + random() * 0.045;
+            const shrinkB = 0.78 + random() * 0.045;
+            const lean = (random() - 0.5) * 0.075;
+
+            branch(endX, endY, angle + spread + lean, length * shrinkA, depth + 1);
+            branch(endX, endY, angle - spread + lean, length * shrinkB, depth + 1);
+          }
+
+          branch(
+            rootX,
+            rootY,
+            rootAngle,
+            direction.rootLength + random() * 0.04,
+            0
+          );
+        });
+
+        return new Float32Array(values);
+      }
+
+      let program;
+
+      try {
+        program = createProgram();
+      } catch (error) {
+        canvas.hidden = true;
+        status.textContent = 'The WebGL study could not start on this device.';
+        status.dataset.visible = 'true';
+        console.error(error);
+        return;
+      }
+
+      const segments = buildSegments();
+      const stride = 9 * Float32Array.BYTES_PER_ELEMENT;
+      const segmentCount = segments.length / 9;
+      const vao = gl.createVertexArray();
+      const buffer = gl.createBuffer();
+
+      gl.bindVertexArray(vao);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, segments, gl.STATIC_DRAW);
+
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, stride, 0);
+      gl.vertexAttribDivisor(0, 1);
+
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(1, 2, gl.FLOAT, false, stride, 2 * Float32Array.BYTES_PER_ELEMENT);
+      gl.vertexAttribDivisor(1, 1);
+
+      gl.enableVertexAttribArray(2);
+      gl.vertexAttribPointer(2, 4, gl.FLOAT, false, stride, 4 * Float32Array.BYTES_PER_ELEMENT);
+      gl.vertexAttribDivisor(2, 1);
+
+      gl.enableVertexAttribArray(3);
+      gl.vertexAttribPointer(3, 1, gl.FLOAT, false, stride, 8 * Float32Array.BYTES_PER_ELEMENT);
+      gl.vertexAttribDivisor(3, 1);
+
+      gl.bindVertexArray(null);
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+      const uniforms = {
+        time: gl.getUniformLocation(program, 'u_time'),
+        dpr: gl.getUniformLocation(program, 'u_dpr'),
+        resolution: gl.getUniformLocation(program, 'u_resolution'),
+      };
+
+      gl.useProgram(program);
+      gl.clearColor(0.97255, 0.95686, 0.91373, 1.0);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.disable(gl.DEPTH_TEST);
+
+      let dpr = 1;
+      let frame = 0;
+      let elapsed = 0;
+      let previousTime = performance.now();
+      const STATIC_TIME = 31.5;
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+        const width = Math.max(1, Math.round(window.innerWidth * dpr));
+        const height = Math.max(1, Math.round(window.innerHeight * dpr));
+
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+          gl.viewport(0, 0, width, height);
+        }
+      }
+
+      function draw(time) {
+        resize();
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.useProgram(program);
+        gl.bindVertexArray(vao);
+        gl.uniform1f(uniforms.time, time);
+        gl.uniform1f(uniforms.dpr, dpr);
+        gl.uniform2f(uniforms.resolution, canvas.width, canvas.height);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, segmentCount);
+        gl.bindVertexArray(null);
+      }
+
+      function tick(now) {
+        const delta = Math.min(50, now - previousTime) / 1000;
+        previousTime = now;
+        elapsed += delta;
+        draw(elapsed);
+        frame = requestAnimationFrame(tick);
+      }
+
+      function stop() {
+        if (frame) cancelAnimationFrame(frame);
+        frame = 0;
+      }
+
+      function start() {
+        stop();
+
+        if (reduceMotion.matches) {
+          draw(STATIC_TIME);
+          return;
+        }
+
+        if (document.hidden) return;
+        previousTime = performance.now();
+        frame = requestAnimationFrame(tick);
+      }
+
+      window.addEventListener('resize', () => {
+        if (reduceMotion.matches || document.hidden) {
+          draw(reduceMotion.matches ? STATIC_TIME : elapsed);
+        }
+      }, { passive: true });
+
+      document.addEventListener('visibilitychange', start);
+      reduceMotion.addEventListener('change', start);
+      window.addEventListener('pagehide', stop, { once: true });
+      start();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exponential Spiral · Vibe Coding</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f8f4e9;
+      --ink: #3a332a;
+      --ink-soft: #685f52;
+      --accent: #c25c3b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    body {
+      color: var(--ink);
+      font-family: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--paper);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      isolation: isolate;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .title-lockup {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(0.7rem, 1.7vh, 1.1rem);
+      width: min(88vw, 48rem);
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      font-size: clamp(3.25rem, 8.5vw, 6rem);
+      font-weight: 600;
+      line-height: 0.98;
+      letter-spacing: -0.018em;
+      text-wrap: balance;
+    }
+
+    .underline {
+      width: clamp(14rem, 28vw, 22.5rem);
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      opacity: 0.72;
+      transform: rotate(-0.8deg);
+      transform-origin: center;
+    }
+
+    .concept {
+      position: absolute;
+      bottom: max(1.25rem, env(safe-area-inset-bottom));
+      left: max(1.25rem, env(safe-area-inset-left));
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1.4;
+      letter-spacing: 0.035em;
+    }
+
+    .status {
+      position: absolute;
+      top: calc(50% + clamp(4.9rem, 10vw, 7rem));
+      left: 50%;
+      display: none;
+      width: min(84vw, 34rem);
+      margin: 0;
+      transform: translateX(-50%);
+      color: var(--ink-soft);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      text-align: center;
+      text-wrap: pretty;
+    }
+
+    .status[data-visible="true"] {
+      display: block;
+    }
+
+    @media (max-width: 34rem) {
+      .concept {
+        right: max(1.25rem, env(safe-area-inset-right));
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="art" aria-hidden="true"></canvas>
+
+  <main aria-labelledby="page-title">
+    <div class="title-lockup">
+      <h1 id="page-title">Vibe Coding</h1>
+      <span class="underline" aria-hidden="true"></span>
+    </div>
+
+    <p class="concept">Exponential spiral · live WebGL study</p>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </main>
+
+  <noscript>
+    <p style="position:fixed;left:50%;bottom:4rem;transform:translateX(-50%);margin:0;color:#685f52;font:0.875rem/1.5 system-ui,sans-serif;text-align:center;">
+      JavaScript is required to preview this generative study.
+    </p>
+  </noscript>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const canvas = document.querySelector('#art');
+      const status = document.querySelector('#status');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const gl = canvas.getContext('webgl2', {
+        alpha: false,
+        antialias: true,
+        depth: false,
+        stencil: false,
+        powerPreference: 'high-performance',
+      });
+
+      if (!gl) {
+        canvas.hidden = true;
+        status.textContent = 'This study needs a browser with WebGL 2 enabled.';
+        status.dataset.visible = 'true';
+        return;
+      }
+
+      const vertexSource = `#version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform float u_time;
+        uniform float u_aspect;
+        uniform float u_dpr;
+        uniform float u_arm;
+        uniform int u_mode;
+
+        out float v_alpha;
+        out float v_tone;
+        flat out float v_seed;
+
+        const float TAU = 6.28318530718;
+        const float FIELD_SCALE = 1.28;
+
+        float hash(float n) {
+          return fract(sin(n * 127.1 + 311.7) * 43758.5453123);
+        }
+
+        vec2 toClip(vec2 point) {
+          float fit = min(1.0, u_aspect);
+          return vec2(point.x * fit / u_aspect, point.y * fit);
+        }
+
+        void main() {
+          float id = float(gl_VertexID);
+          float radius;
+          float angle;
+          float alpha;
+          float tone;
+
+          if (u_mode == 1) {
+            float along = id / 319.0;
+            radius = 0.225 + 0.92 * pow(along, 1.08);
+            angle = u_arm * (TAU / 5.0)
+              + 8.35 * log(radius / 0.225)
+              + u_time * 0.042
+              + 0.018 * sin(u_time * 0.17 + along * 19.0 + u_arm);
+            alpha = 0.15 * smoothstep(0.0, 0.055, along)
+              * (1.0 - smoothstep(0.91, 1.0, along));
+            tone = 0.42 + 0.18 * hash(u_arm + 3.0);
+            gl_PointSize = 1.0;
+          } else {
+            float generation = floor(log2(id + 1.0));
+            float first = exp2(generation) - 1.0;
+            float local = id - first;
+            float count = exp2(generation);
+            float arm = mod(local, 5.0);
+            float perArm = ceil(count / 5.0);
+            float along = clamp((floor(local / 5.0) + 0.5) / perArm, 0.0, 1.0);
+            float generationN = generation / 10.0;
+
+            radius = 0.225 + 0.92
+              * pow((generation + 0.16 + 0.72 * along) / 10.88, 1.23);
+            angle = arm * (TAU / 5.0)
+              + 8.35 * log(radius / 0.225)
+              + generation * 0.067
+              + u_time * (0.037 + generationN * 0.018)
+              + 0.025 * sin(u_time * 0.21 + id * 0.071);
+
+            float multiplicationWave = pow(
+              0.5 + 0.5 * cos(generation * 0.79 - u_time * 0.49),
+              7.0
+            );
+            alpha = mix(0.48, 0.22, generationN)
+              * (0.72 + 0.46 * multiplicationWave)
+              * (0.86 + 0.14 * sin(id * 1.73 + u_time * 0.12));
+            tone = hash(id * 0.73 + generation * 11.0);
+            gl_PointSize = mix(5.2, 1.8, generationN)
+              * (0.82 + 0.44 * hash(id + 19.0))
+              * u_dpr;
+          }
+
+          vec2 point = vec2(cos(angle), sin(angle)) * radius * FIELD_SCALE;
+          point += 0.008 * vec2(
+            sin(id * 0.43 + u_time * 0.09),
+            cos(id * 0.37 - u_time * 0.08)
+          );
+
+          vec2 clip = toClip(point);
+          float quietDistance = length(vec2(clip.x / 0.55, clip.y / 0.33));
+          float quietMask = smoothstep(0.52, 1.68, quietDistance);
+          float edge = max(abs(clip.x), abs(clip.y));
+          float edgeMask = 1.0 - smoothstep(0.84, 1.04, edge);
+
+          v_alpha = alpha * quietMask * edgeMask;
+          v_tone = tone;
+          v_seed = hash(id + u_arm * 97.0);
+          gl_Position = vec4(clip, 0.0, 1.0);
+        }
+      `;
+
+      const fragmentSource = `#version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform int u_mode;
+
+        in float v_alpha;
+        in float v_tone;
+        flat in float v_seed;
+
+        out vec4 outColor;
+
+        void main() {
+          float coverage = 1.0;
+
+          if (u_mode == 0) {
+            vec2 point = gl_PointCoord * 2.0 - 1.0;
+            float wobble = 0.045 * sin(
+              atan(point.y, point.x) * 5.0 + v_seed * 17.0
+            );
+            coverage = 1.0 - smoothstep(0.69, 1.0, length(point) + wobble);
+            if (coverage <= 0.0) discard;
+          }
+
+          vec3 ink = vec3(0.2275, 0.2000, 0.1647);
+          vec3 inkSoft = vec3(0.4078, 0.3725, 0.3216);
+          vec3 connector = vec3(0.5804, 0.5373, 0.4784);
+          vec3 color = mix(connector, inkSoft, smoothstep(0.22, 0.88, v_tone));
+          color = mix(color, ink, 0.08 * smoothstep(0.88, 1.0, v_tone));
+
+          outColor = vec4(color, v_alpha * coverage);
+        }
+      `;
+
+      function compile(type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          const message = gl.getShaderInfoLog(shader) || 'Unknown shader error';
+          gl.deleteShader(shader);
+          throw new Error(message);
+        }
+
+        return shader;
+      }
+
+      function createProgram() {
+        const vertex = compile(gl.VERTEX_SHADER, vertexSource);
+        const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
+        const program = gl.createProgram();
+        gl.attachShader(program, vertex);
+        gl.attachShader(program, fragment);
+        gl.linkProgram(program);
+        gl.deleteShader(vertex);
+        gl.deleteShader(fragment);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          const message = gl.getProgramInfoLog(program) || 'Unknown program error';
+          gl.deleteProgram(program);
+          throw new Error(message);
+        }
+
+        return program;
+      }
+
+      let program;
+
+      try {
+        program = createProgram();
+      } catch (error) {
+        canvas.hidden = true;
+        status.textContent = 'The WebGL study could not start on this device.';
+        status.dataset.visible = 'true';
+        console.error(error);
+        return;
+      }
+
+      const uniforms = {
+        time: gl.getUniformLocation(program, 'u_time'),
+        aspect: gl.getUniformLocation(program, 'u_aspect'),
+        dpr: gl.getUniformLocation(program, 'u_dpr'),
+        arm: gl.getUniformLocation(program, 'u_arm'),
+        mode: gl.getUniformLocation(program, 'u_mode'),
+      };
+
+      gl.useProgram(program);
+      gl.clearColor(0.97255, 0.95686, 0.91373, 1.0);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.disable(gl.DEPTH_TEST);
+
+      let dpr = 1;
+      let frame = 0;
+      let elapsed = 0;
+      let previousTime = performance.now();
+      const STATIC_TIME = 37.25;
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+        const width = Math.max(1, Math.round(window.innerWidth * dpr));
+        const height = Math.max(1, Math.round(window.innerHeight * dpr));
+
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+          gl.viewport(0, 0, width, height);
+        }
+      }
+
+      function draw(time) {
+        resize();
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.useProgram(program);
+        gl.uniform1f(uniforms.time, time);
+        gl.uniform1f(uniforms.aspect, canvas.width / canvas.height);
+        gl.uniform1f(uniforms.dpr, dpr);
+
+        gl.uniform1i(uniforms.mode, 1);
+        for (let arm = 0; arm < 5; arm += 1) {
+          gl.uniform1f(uniforms.arm, arm);
+          gl.drawArrays(gl.LINE_STRIP, 0, 320);
+        }
+
+        gl.uniform1i(uniforms.mode, 0);
+        gl.uniform1f(uniforms.arm, 0);
+        gl.drawArrays(gl.POINTS, 0, 2047);
+      }
+
+      function tick(now) {
+        const delta = Math.min(50, now - previousTime) / 1000;
+        previousTime = now;
+        elapsed += delta;
+        draw(elapsed);
+        frame = requestAnimationFrame(tick);
+      }
+
+      function stop() {
+        if (frame) cancelAnimationFrame(frame);
+        frame = 0;
+      }
+
+      function start() {
+        stop();
+
+        if (reduceMotion.matches) {
+          draw(STATIC_TIME);
+          return;
+        }
+
+        if (document.hidden) return;
+        previousTime = performance.now();
+        frame = requestAnimationFrame(tick);
+      }
+
+      window.addEventListener('resize', () => {
+        if (reduceMotion.matches || document.hidden) {
+          draw(reduceMotion.matches ? STATIC_TIME : elapsed);
+        }
+      }, { passive: true });
+
+      document.addEventListener('visibilitychange', start);
+      reduceMotion.addEventListener('change', start);
+      window.addEventListener('pagehide', stop, { once: true });
+      start();
+    })();
+  </script>
+</body>
+</html>

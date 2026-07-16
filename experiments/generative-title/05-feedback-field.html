@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f4e9">
+  <title>Feedback Field · Vibe Coding</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f8f4e9;
+      --ink: #3a332a;
+      --ink-soft: #685f52;
+      --accent: #c25c3b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    body {
+      color: var(--ink);
+      font-family: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--paper);
+    }
+
+    main {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      padding: clamp(1.5rem, 5vw, 4rem);
+      pointer-events: none;
+    }
+
+    .lockup {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translateY(-0.5rem);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      font-size: clamp(3.25rem, 8.5vw, 6rem);
+      font-weight: 600;
+      line-height: 1.02;
+      letter-spacing: -0.018em;
+      text-align: center;
+      text-wrap: balance;
+      white-space: nowrap;
+    }
+
+    .underline {
+      width: clamp(14rem, 28vw, 22.5rem);
+      height: 3px;
+      margin-top: 0.7rem;
+      border-radius: 999px;
+      background: var(--accent);
+      clip-path: polygon(0 38%, 18% 29%, 42% 43%, 67% 25%, 100% 42%, 99% 78%, 68% 70%, 39% 82%, 0 67%);
+      opacity: 0.74;
+      transform: rotate(-0.35deg);
+    }
+
+    .concept {
+      position: fixed;
+      z-index: 2;
+      left: clamp(1.25rem, 3vw, 2.25rem);
+      bottom: clamp(1.15rem, 3vw, 2rem);
+      margin: 0;
+      color: var(--ink-soft);
+      font-family: "Instrument Sans", "Avenir Next", Avenir, Helvetica, Arial, sans-serif;
+      font-size: 0.75rem;
+      font-style: normal;
+      font-weight: 500;
+      letter-spacing: 0.035em;
+      opacity: 0.76;
+      pointer-events: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 520px) {
+      h1 { font-size: clamp(3rem, 14vw, 4.5rem); }
+      .lockup { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="art" aria-hidden="true"></canvas>
+  <main aria-labelledby="title">
+    <div class="lockup">
+      <h1 id="title">Vibe Coding</h1>
+      <span class="underline" aria-hidden="true"></span>
+    </div>
+  </main>
+  <p class="concept">05 / feedback field</p>
+  <p id="status" class="sr-only" aria-live="polite"></p>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const PAPER = '#f8f4e9';
+      const STATIC_TIME = 14.25;
+      const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const status = document.getElementById('status');
+      let canvas = document.getElementById('art');
+      let gl = null;
+      let ctx = null;
+      let mode = 'webgl';
+      let simulationProgram = null;
+      let displayProgram = null;
+      let targets = [];
+      let readTarget = 0;
+      let simulationWidth = 0;
+      let simulationHeight = 0;
+      let cssWidth = 1;
+      let cssHeight = 1;
+      let pixelRatio = 1;
+      let elapsed = 0;
+      let simulationBudget = 0;
+      let previous = 0;
+      let frameId = 0;
+      let running = false;
+      let simulationUniforms = null;
+      let displayUniforms = null;
+
+      const vertexSource = `#version 300 es
+        precision highp float;
+        out vec2 v_uv;
+        void main() {
+          vec2 position;
+          if (gl_VertexID == 0) position = vec2(-1.0, -1.0);
+          else if (gl_VertexID == 1) position = vec2(3.0, -1.0);
+          else position = vec2(-1.0, 3.0);
+          v_uv = position * 0.5 + 0.5;
+          gl_Position = vec4(position, 0.0, 1.0);
+        }
+      `;
+
+      const simulationSource = `#version 300 es
+        precision highp float;
+
+        uniform sampler2D u_state;
+        uniform vec2 u_size;
+        uniform float u_aspect;
+        uniform float u_time;
+        out vec4 outColor;
+
+        vec2 stateAt(ivec2 point) {
+          ivec2 limit = ivec2(u_size) - ivec2(1);
+          return texelFetch(u_state, clamp(point, ivec2(0), limit), 0).rg;
+        }
+
+        float sourceAt(vec2 uv, vec2 position, float radius) {
+          vec2 delta = uv - position;
+          delta.x *= u_aspect;
+          return 1.0 - smoothstep(0.0, radius, length(delta));
+        }
+
+        void main() {
+          ivec2 point = ivec2(gl_FragCoord.xy);
+          vec2 center = stateAt(point);
+          vec2 laplacian = -center;
+          laplacian += 0.20 * (stateAt(point + ivec2(1, 0)) + stateAt(point + ivec2(-1, 0))
+                             + stateAt(point + ivec2(0, 1)) + stateAt(point + ivec2(0, -1)));
+          laplacian += 0.05 * (stateAt(point + ivec2(1, 1)) + stateAt(point + ivec2(-1, 1))
+                             + stateAt(point + ivec2(1, -1)) + stateAt(point + ivec2(-1, -1)));
+
+          vec2 uv = (vec2(point) + 0.5) / u_size;
+          float a = center.r;
+          float b = center.g;
+          float feed = 0.0367 + 0.0011 * sin(uv.y * 6.283 + u_time * 0.018);
+          float kill = 0.0649 + 0.0008 * cos(uv.x * 6.283 - u_time * 0.014);
+          float reaction = a * b * b;
+          float nextA = a + (0.98 * laplacian.r - reaction + feed * (1.0 - a));
+          float nextB = b + (0.48 * laplacian.g + reaction - (kill + feed) * b);
+
+          vec2 orbitA = vec2(0.5 + 0.36 * cos(u_time * 0.071), 0.5 + 0.31 * sin(u_time * 0.071));
+          vec2 orbitB = vec2(0.5 + 0.33 * cos(u_time * 0.053 + 2.3), 0.5 + 0.35 * sin(u_time * 0.079 + 2.3));
+          vec2 orbitC = vec2(0.5 + 0.40 * cos(u_time * 0.041 + 4.6), 0.5 + 0.24 * sin(u_time * 0.067 + 4.6));
+          float pulseA = pow(0.5 + 0.5 * sin(u_time * 0.31), 18.0);
+          float pulseB = pow(0.5 + 0.5 * sin(u_time * 0.233 + 2.0), 20.0);
+          float pulseC = pow(0.5 + 0.5 * sin(u_time * 0.277 + 4.0), 22.0);
+          float disturbance = sourceAt(uv, orbitA, 0.032) * pulseA
+                            + sourceAt(uv, orbitB, 0.028) * pulseB
+                            + sourceAt(uv, orbitC, 0.026) * pulseC;
+          disturbance = clamp(disturbance * 0.52, 0.0, 0.52);
+          nextB = mix(nextB, max(nextB, 0.72), disturbance);
+          nextA = mix(nextA, min(nextA, 0.45), disturbance);
+
+          outColor = vec4(clamp(nextA, 0.0, 1.0), clamp(nextB, 0.0, 1.0), 0.0, 1.0);
+        }
+      `;
+
+      const displaySource = `#version 300 es
+        precision highp float;
+
+        uniform sampler2D u_state;
+        uniform vec2 u_resolution;
+        uniform float u_time;
+        in vec2 v_uv;
+        out vec4 outColor;
+
+        const vec3 PAPER = vec3(0.97255, 0.95686, 0.91373);
+        const vec3 INK_SOFT = vec3(0.40784, 0.37255, 0.32157);
+        const vec3 CONNECTOR = vec3(0.58039, 0.53725, 0.47843);
+        const vec3 ACCENT = vec3(0.76078, 0.36078, 0.23137);
+
+        float roundedBox(vec2 p, vec2 bounds, float radius) {
+          vec2 q = abs(p) - bounds + radius;
+          return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - radius;
+        }
+
+        void main() {
+          vec2 texel = 1.0 / vec2(textureSize(u_state, 0));
+          float b = texture(u_state, v_uv).g;
+          float dx = texture(u_state, v_uv + vec2(texel.x, 0.0)).g
+                   - texture(u_state, v_uv - vec2(texel.x, 0.0)).g;
+          float dy = texture(u_state, v_uv + vec2(0.0, texel.y)).g
+                   - texture(u_state, v_uv - vec2(0.0, texel.y)).g;
+          float edge = clamp(length(vec2(dx, dy)) * 4.2, 0.0, 1.0);
+          float body = smoothstep(0.035, 0.21, b) * (1.0 - smoothstep(0.55, 0.75, b));
+          float wave = 0.5 + 0.5 * cos(b * 48.0 + u_time * 0.012);
+          float contour = smoothstep(0.88, 0.985, wave) * smoothstep(0.04, 0.18, b);
+
+          vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution) / u_resolution.y;
+          float aspect = u_resolution.x / u_resolution.y;
+          float titleHalfWidth = min(0.44, aspect * 0.42);
+          float titleDistance = roundedBox(p, vec2(titleHalfWidth, 0.115), 0.052);
+          float quietZone = smoothstep(-0.015, 0.17, titleDistance);
+          vec2 edgePosition = abs(v_uv - 0.5) * 2.0;
+          float edgeFade = 1.0 - smoothstep(0.82, 1.06, max(edgePosition.x, edgePosition.y));
+          float mask = quietZone * edgeFade;
+
+          float field = (body * 0.10 + contour * 0.135 + edge * 0.18) * mask;
+          float inkDetail = edge * contour * 0.055 * mask;
+          float accentWindow = smoothstep(0.27, 0.39, b) * (1.0 - smoothstep(0.48, 0.62, b));
+          float accent = accentWindow * contour * 0.045 * mask;
+
+          vec3 color = PAPER;
+          color = mix(color, CONNECTOR, clamp(field, 0.0, 0.21));
+          color = mix(color, INK_SOFT, clamp(inkDetail, 0.0, 0.045));
+          color = mix(color, ACCENT, clamp(accent, 0.0, 0.04));
+          outColor = vec4(color, 1.0);
+        }
+      `;
+
+      function compile(type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          const message = gl.getShaderInfoLog(shader) || 'Unknown shader error';
+          gl.deleteShader(shader);
+          throw new Error(message);
+        }
+        return shader;
+      }
+
+      function createProgram(fragmentSource) {
+        const vertex = compile(gl.VERTEX_SHADER, vertexSource);
+        const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
+        const result = gl.createProgram();
+        gl.attachShader(result, vertex);
+        gl.attachShader(result, fragment);
+        gl.linkProgram(result);
+        gl.deleteShader(vertex);
+        gl.deleteShader(fragment);
+        if (!gl.getProgramParameter(result, gl.LINK_STATUS)) {
+          throw new Error(gl.getProgramInfoLog(result) || 'Unable to link shader program');
+        }
+        return result;
+      }
+
+      function initialiseWebGL() {
+        gl = canvas.getContext('webgl2', {
+          alpha: false,
+          antialias: false,
+          depth: false,
+          stencil: false,
+          powerPreference: 'high-performance'
+        });
+        if (!gl) return false;
+
+        simulationProgram = createProgram(simulationSource);
+        displayProgram = createProgram(displaySource);
+        gl.bindVertexArray(gl.createVertexArray());
+        gl.disable(gl.BLEND);
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.DITHER);
+
+        simulationUniforms = {
+          state: gl.getUniformLocation(simulationProgram, 'u_state'),
+          size: gl.getUniformLocation(simulationProgram, 'u_size'),
+          aspect: gl.getUniformLocation(simulationProgram, 'u_aspect'),
+          time: gl.getUniformLocation(simulationProgram, 'u_time')
+        };
+        displayUniforms = {
+          state: gl.getUniformLocation(displayProgram, 'u_state'),
+          resolution: gl.getUniformLocation(displayProgram, 'u_resolution'),
+          time: gl.getUniformLocation(displayProgram, 'u_time')
+        };
+
+        canvas.addEventListener('webglcontextlost', (event) => {
+          event.preventDefault();
+          activateFallback('Konteks WebGL terhenti; visualisasi memakai Canvas 2D.');
+          resize(true);
+          start();
+        }, { once: true });
+        return true;
+      }
+
+      function activateFallback(message) {
+        mode = '2d';
+        if (gl) {
+          const replacement = canvas.cloneNode(false);
+          canvas.replaceWith(replacement);
+          canvas = replacement;
+          gl = null;
+        }
+        ctx = canvas.getContext('2d');
+        status.textContent = message || 'WebGL tidak tersedia; visualisasi memakai Canvas 2D.';
+      }
+
+      function seededState(width, height) {
+        const data = new Uint8Array(width * height * 4);
+        const aspect = width / height;
+        const seeds = [];
+        for (let row = 0; row < 5; row += 1) {
+          for (let column = 0; column < 8; column += 1) {
+            const u = (column + 0.5) / 8 + 0.018 * Math.sin(row * 3.1 + column * 1.7);
+            const v = (row + 0.5) / 5 + 0.022 * Math.cos(row * 1.9 - column * 2.3);
+            const isTitleArea = Math.abs(u - 0.5) < 0.24 && Math.abs(v - 0.5) < 0.17;
+            if (!isTitleArea) {
+              const radius = 0.027 + 0.009 * (0.5 + 0.5 * Math.sin(row * 2.4 + column));
+              seeds.push([u, v, radius, row * 1.4 + column * 0.73]);
+            }
+          }
+        }
+
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            const u = (x + 0.5) / width;
+            const v = (y + 0.5) / height;
+            let b = 0;
+            for (const seed of seeds) {
+              const dx = (u - seed[0]) * aspect;
+              const dy = v - seed[1];
+              const angle = Math.atan2(dy, dx);
+              const radius = seed[2] * (1 + 0.16 * Math.sin(angle * 5 + seed[3]));
+              const distance = Math.hypot(dx, dy);
+              if (distance < radius) b = Math.max(b, 0.9);
+              if (Math.abs(distance - radius * 1.65) < radius * 0.12) b = Math.max(b, 0.58);
+            }
+            const winding = Math.sin(u * 18 + Math.sin(v * 7.0) * 2.2)
+                          + 0.68 * Math.sin(v * 25 - Math.sin(u * 5.0) * 1.6);
+            const outsideTitle = Math.abs(u - 0.5) > 0.23 || Math.abs(v - 0.5) > 0.16;
+            if (outsideTitle && Math.abs(winding - 0.18) < 0.052) b = Math.max(b, 0.54);
+            const index = (y * width + x) * 4;
+            data[index] = Math.round(255 * (1 - b * 0.48));
+            data[index + 1] = Math.round(255 * b);
+            data[index + 2] = 0;
+            data[index + 3] = 255;
+          }
+        }
+        return data;
+      }
+
+      function createTarget(data) {
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, simulationWidth, simulationHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+
+        const framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+          throw new Error('Reaction field framebuffer is incomplete');
+        }
+        return { texture, framebuffer };
+      }
+
+      function rebuildSimulation(width, height) {
+        for (const target of targets) {
+          gl.deleteFramebuffer(target.framebuffer);
+          gl.deleteTexture(target.texture);
+        }
+        simulationWidth = width;
+        simulationHeight = height;
+        const data = seededState(width, height);
+        targets = [createTarget(data), createTarget(data)];
+        readTarget = 0;
+        simulationBudget = 0;
+        const warmupSteps = motionQuery.matches ? 72 : 34;
+        for (let step = 0; step < warmupSteps; step += 1) {
+          simulate(step / 90);
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      }
+
+      function simulate(time) {
+        const writeTarget = 1 - readTarget;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, targets[writeTarget].framebuffer);
+        gl.viewport(0, 0, simulationWidth, simulationHeight);
+        gl.useProgram(simulationProgram);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, targets[readTarget].texture);
+        gl.uniform1i(simulationUniforms.state, 0);
+        gl.uniform2f(simulationUniforms.size, simulationWidth, simulationHeight);
+        gl.uniform1f(simulationUniforms.aspect, simulationWidth / simulationHeight);
+        gl.uniform1f(simulationUniforms.time, time);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        readTarget = writeTarget;
+      }
+
+      function display(time) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.useProgram(displayProgram);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, targets[readTarget].texture);
+        gl.uniform1i(displayUniforms.state, 0);
+        gl.uniform2f(displayUniforms.resolution, canvas.width, canvas.height);
+        gl.uniform1f(displayUniforms.time, time);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+
+      function roundedRectPath(context, x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        context.moveTo(x + r, y);
+        context.arcTo(x + width, y, x + width, y + height, r);
+        context.arcTo(x + width, y + height, x, y + height, r);
+        context.arcTo(x, y + height, x, y, r);
+        context.arcTo(x, y, x + width, y, r);
+      }
+
+      function drawFallback(time) {
+        ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        ctx.fillStyle = PAPER;
+        ctx.fillRect(0, 0, cssWidth, cssHeight);
+        const scale = Math.min(cssWidth, cssHeight);
+        const cx = cssWidth / 2;
+        const cy = cssHeight / 2;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, cssWidth, cssHeight);
+        const quietWidth = Math.min(scale * 0.88, cssWidth * 0.84);
+        const quietHeight = scale * 0.28;
+        roundedRectPath(ctx, cx - quietWidth / 2, cy - quietHeight / 2, quietWidth, quietHeight, scale * 0.07);
+        ctx.clip('evenodd');
+        ctx.lineWidth = Math.max(0.75, scale * 0.0012);
+
+        for (let lane = 0; lane < 27; lane += 1) {
+          const ratio = lane / 26;
+          const baseY = (ratio - 0.5) * cssHeight * 1.12 + cy;
+          ctx.beginPath();
+          for (let point = 0; point <= 170; point += 1) {
+            const x = point / 170 * cssWidth;
+            const nx = x / cssWidth;
+            const feedback = Math.sin(nx * 9.2 + lane * 0.63 + time * 0.10
+                            + Math.sin(nx * 4.1 - time * 0.074 + lane * 0.17) * 1.35);
+            const curl = Math.sin(nx * 18.0 - lane * 0.31 - time * 0.063) * scale * 0.018;
+            const y = baseY + feedback * scale * 0.047 + curl;
+            if (point === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.strokeStyle = lane % 11 === 0
+            ? 'rgba(194, 92, 59, 0.08)'
+            : 'rgba(148, 137, 122, 0.17)';
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function resize(forceRebuild = false) {
+        cssWidth = Math.max(1, window.innerWidth);
+        cssHeight = Math.max(1, window.innerHeight);
+        pixelRatio = Math.min(window.devicePixelRatio || 1, 1.6);
+        canvas.width = Math.max(1, Math.round(cssWidth * pixelRatio));
+        canvas.height = Math.max(1, Math.round(cssHeight * pixelRatio));
+
+        if (mode === 'webgl' && gl) {
+          const scale = Math.min(0.52, Math.sqrt(180000 / (cssWidth * cssHeight)));
+          const nextWidth = Math.max(240, Math.min(640, Math.round(cssWidth * scale)));
+          const nextHeight = Math.max(180, Math.min(440, Math.round(cssHeight * scale)));
+          if (forceRebuild || nextWidth !== simulationWidth || nextHeight !== simulationHeight) {
+            rebuildSimulation(nextWidth, nextHeight);
+          }
+          display(motionQuery.matches ? STATIC_TIME : elapsed);
+        } else if (ctx) {
+          drawFallback(motionQuery.matches ? STATIC_TIME : elapsed);
+        }
+      }
+
+      function renderFrame(time, delta) {
+        if (mode === 'webgl' && gl) {
+          simulationBudget += delta * 90;
+          const steps = Math.min(5, Math.floor(simulationBudget));
+          simulationBudget -= steps;
+          for (let step = 0; step < steps; step += 1) simulate(time);
+          display(time);
+        } else if (ctx) {
+          drawFallback(time);
+        }
+      }
+
+      function frame(now) {
+        if (!running) return;
+        if (!previous) previous = now;
+        const delta = Math.min((now - previous) / 1000, 0.05);
+        elapsed += delta;
+        previous = now;
+        renderFrame(elapsed, delta);
+        frameId = requestAnimationFrame(frame);
+      }
+
+      function stop() {
+        running = false;
+        previous = 0;
+        if (frameId) cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+
+      function start() {
+        stop();
+        if (document.hidden) return;
+        if (motionQuery.matches) {
+          elapsed = STATIC_TIME;
+          if (mode === 'webgl' && gl) display(STATIC_TIME);
+          else if (ctx) drawFallback(STATIC_TIME);
+          return;
+        }
+        running = true;
+        frameId = requestAnimationFrame(frame);
+      }
+
+      try {
+        if (!initialiseWebGL()) activateFallback();
+      } catch (error) {
+        console.warn('Feedback Field WebGL fallback:', error);
+        activateFallback('Shader WebGL tidak dapat dijalankan; visualisasi memakai Canvas 2D.');
+      }
+
+      resize(true);
+      start();
+      window.addEventListener('resize', () => resize(false), { passive: true });
+      document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+      const onMotionChange = () => {
+        resize(true);
+        start();
+      };
+      if (motionQuery.addEventListener) motionQuery.addEventListener('change', onMotionChange);
+      else motionQuery.addListener(onMotionChange);
+    })();
+  </script>
+</body>
+</html>
