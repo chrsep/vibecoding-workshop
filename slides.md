@@ -41,10 +41,6 @@ src: ./pages/02-what-is-vibe-coding.md
 ---
 
 ---
-src: ./pages/03-spectrum.md
----
-
----
 src: ./pages/04-why-now.md
 ---
 
