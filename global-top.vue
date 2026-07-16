@@ -1,18 +1,10 @@
-<script setup>
-import { computed } from 'vue'
-import { useNav } from '@slidev/client'
-
-const { currentPage, currentSlideRoute } = useNav()
-
-// Slides opt in to the editorial frame by declaring `kicker:` in their frontmatter.
-const kicker = computed(() => currentSlideRoute.value?.meta?.slide?.frontmatter?.kicker)
-</script>
-
 <template>
-  <template v-if="kicker">
-    <div class="deck-kicker">
-      Vibe Coding Workshop · <b>{{ kicker }}</b>
+  <!-- Slides opt in to the editorial frame by declaring `kicker:` in their frontmatter.
+       $nav is auto-injected by Slidev into project SFCs. -->
+  <template v-if="$nav.currentSlideRoute?.meta?.slide?.frontmatter?.kicker">
+    <div class="absolute top-[30px] left-[56px] font-sans text-[11px] tracking-[0.18em] uppercase font-semibold text-ink-soft">
+      Vibe Coding Workshop · <b class="text-accent font-semibold">{{ $nav.currentSlideRoute.meta.slide.frontmatter.kicker }}</b>
     </div>
-    <div class="deck-slideno">§{{ currentPage }}</div>
+    <div class="absolute top-[27px] right-[56px] font-serif italic text-[14px] text-ink-soft">§{{ $nav.currentPage }}</div>
   </template>
 </template>

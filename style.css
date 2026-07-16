@@ -1,109 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=Instrument+Sans:wght@400;500;600;700&display=swap');
-
-:root {
-  /* warm editorial palette (see references/example.html) */
-  --paper: #f8f4e9;
-  --paper-deep: #eee7d6;
-  --ink: #3a332a;
-  --ink-soft: #685f52;
-  --accent: #c25c3b;        /* terracotta — THE accent */
-  --accent-soft: #f4dcc8;
-  --green: #3fbd85;
-  --green-deep: #23795a;    /* secondary accent, for data/db/special */
-  --line: #94897a;
-
-  /* legacy aliases — old slides/components keep working */
-  --sketch-red: var(--accent);
-  --sketch-orange: var(--accent);
-  --sketch-blue: var(--ink-soft);
-  --sketch-violet: var(--ink-soft);
-  --sketch-green: var(--green-deep);
-}
+/*
+ * Base layer only. This file styles markdown-generated elements and Slidev
+ * layout internals that markup can't reach directly (raw h1/h2/h3/p/li from
+ * markdown, .slidev-layout wrapper). Everything else — design tokens, the
+ * `hand` / `title-grid-*` shortcuts, the dotted-grid rule — lives in
+ * uno.config.ts and is applied as Tailwind-style utility classes in markup.
+ * Fonts (Fraunces / Instrument Sans) are loaded via the `fonts:` block in
+ * slides.md frontmatter (Slidev's web-fonts provider), not an @import here.
+ */
 
 .slidev-layout {
-  background-color: var(--paper);
-  /* Excalidraw-style subtle dotted grid, warmed to match the paper */
-  background-image: radial-gradient(circle, #ddd4bf 1px, transparent 1px);
-  background-size: 28px 28px;
-  color: var(--ink);
-  font-family: 'Instrument Sans', sans-serif;
+  @apply bg-paper bg-dotted-grid text-ink font-sans;
+}
+
+/* Title slide: a broken modular field replaces the regular dotted grid. */
+.slidev-layout.title-slide {
+  @apply relative overflow-hidden bg-none;
 }
 
 .slidev-layout h1,
 .slidev-layout h2,
 .slidev-layout h3 {
-  font-family: 'Fraunces', serif;
-  font-weight: 600;
-  color: var(--ink);
-  letter-spacing: -0.01em;
+  @apply font-serif font-semibold text-ink tracking-[-0.01em];
 }
 
 .slidev-layout h1 {
-  font-size: 3.2rem;
-  line-height: 1.1;
+  @apply text-[3.2rem] leading-[1.1];
 }
 
 .slidev-layout h2 {
-  font-size: 2.4rem;
+  @apply text-[2.4rem];
 }
 
 .slidev-layout p,
 .slidev-layout li {
-  color: var(--ink-soft);
-  font-size: 1.15rem;
-  line-height: 1.5;
+  @apply text-ink-soft text-[1.15rem] leading-[1.5];
 }
 
 .slidev-layout b,
 .slidev-layout strong {
-  color: var(--ink);
-  font-weight: 600;
+  @apply text-ink font-semibold;
 }
 
-/* Annotation voice: italic serif (replaces the old Caveat handwriting) */
-.hand {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1.25em;
-  line-height: 1.25;
-}
-
-/* Restrained accent roles — terracotta is the default voice, green is for data */
-.slidev-layout .accent-red,
-.slidev-layout .accent-orange,
-.slidev-layout .accent-violet { color: var(--accent); opacity: 1; }
-.slidev-layout .accent-blue { color: var(--ink-soft); opacity: 1; }
-.slidev-layout .accent-green { color: var(--green-deep); opacity: 1; }
-
-/* Slightly rotated "sticker" feel for images/cards */
-.tilt-l { transform: rotate(-2deg); }
-.tilt-r { transform: rotate(2deg); }
-
-/* ---- slide furniture (global-top.vue) ---- */
-.deck-kicker {
-  position: absolute;
-  top: 30px;
-  left: 56px;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  font-weight: 600;
-}
-
-.deck-kicker b {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.deck-slideno {
-  position: absolute;
-  top: 27px;
-  right: 56px;
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 14px;
-  color: var(--ink-soft);
+/* Breathing room between the kicker frame and a slide's opening heading */
+.slidev-layout.default > h1:first-child {
+  @apply mt-[1.4rem];
 }

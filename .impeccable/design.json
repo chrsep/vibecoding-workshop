@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-15T15:27:58Z",
+  "title": "Design System: Vibe Coding Workshop",
+  "extensions": {
+    "colorMeta": {
+      "terracotta": {
+        "role": "primary",
+        "displayName": "Terracotta",
+        "canonical": "oklch(62% 0.16 42)",
+        "tonalRamp": ["oklch(15% 0.16 42)", "oklch(26% 0.16 42)", "oklch(37% 0.16 42)", "oklch(48% 0.16 42)", "oklch(62% 0.16 42)", "oklch(72% 0.12 42)", "oklch(82% 0.08 44)", "oklch(95% 0.03 46)"]
+      },
+      "terracotta-wash": {
+        "role": "primary",
+        "displayName": "Terracotta Wash",
+        "canonical": "oklch(90% 0.05 48)",
+        "tonalRamp": ["oklch(15% 0.05 48)", "oklch(26% 0.05 48)", "oklch(37% 0.05 48)", "oklch(48% 0.05 48)", "oklch(59% 0.05 48)", "oklch(70% 0.05 48)", "oklch(82% 0.05 48)", "oklch(95% 0.05 48)"]
+      },
+      "leaf-deep": {
+        "role": "secondary",
+        "displayName": "Leaf Deep",
+        "canonical": "oklch(48% 0.1 158)",
+        "tonalRamp": ["oklch(15% 0.1 158)", "oklch(26% 0.1 158)", "oklch(37% 0.1 158)", "oklch(48% 0.1 158)", "oklch(59% 0.1 158)", "oklch(70% 0.1 158)", "oklch(82% 0.08 158)", "oklch(95% 0.04 158)"]
+      },
+      "leaf": {
+        "role": "secondary",
+        "displayName": "Leaf",
+        "canonical": "oklch(72% 0.14 158)",
+        "tonalRamp": ["oklch(15% 0.14 158)", "oklch(26% 0.14 158)", "oklch(37% 0.14 158)", "oklch(48% 0.14 158)", "oklch(59% 0.14 158)", "oklch(72% 0.14 158)", "oklch(82% 0.1 158)", "oklch(95% 0.05 158)"]
+      },
+      "leaf-wash": {
+        "role": "secondary",
+        "displayName": "Leaf Wash",
+        "canonical": "oklch(95% 0.04 158)",
+        "tonalRamp": ["oklch(15% 0.04 158)", "oklch(26% 0.04 158)", "oklch(37% 0.04 158)", "oklch(48% 0.04 158)", "oklch(59% 0.04 158)", "oklch(70% 0.04 158)", "oklch(82% 0.04 158)", "oklch(95% 0.04 158)"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(29% 0.022 62)",
+        "tonalRamp": ["oklch(15% 0.022 62)", "oklch(22% 0.022 62)", "oklch(29% 0.022 62)", "oklch(40% 0.022 62)", "oklch(52% 0.022 62)", "oklch(66% 0.022 62)", "oklch(80% 0.02 66)", "oklch(95% 0.014 74)"]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "oklch(45% 0.02 62)",
+        "tonalRamp": ["oklch(15% 0.02 62)", "oklch(26% 0.02 62)", "oklch(35% 0.02 62)", "oklch(45% 0.02 62)", "oklch(56% 0.02 62)", "oklch(68% 0.02 62)", "oklch(81% 0.018 66)", "oklch(95% 0.014 74)"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(96.5% 0.014 84)",
+        "tonalRamp": ["oklch(15% 0.014 84)", "oklch(28% 0.014 84)", "oklch(41% 0.014 84)", "oklch(54% 0.014 84)", "oklch(67% 0.014 84)", "oklch(80% 0.014 84)", "oklch(90% 0.014 84)", "oklch(96.5% 0.014 84)"]
+      },
+      "paper-deep": {
+        "role": "neutral",
+        "displayName": "Paper Deep",
+        "canonical": "oklch(93% 0.02 82)",
+        "tonalRamp": ["oklch(15% 0.02 82)", "oklch(28% 0.02 82)", "oklch(41% 0.02 82)", "oklch(54% 0.02 82)", "oklch(67% 0.02 82)", "oklch(80% 0.02 82)", "oklch(87% 0.02 82)", "oklch(93% 0.02 82)"]
+      },
+      "grid-dot": {
+        "role": "neutral",
+        "displayName": "Grid Dot",
+        "canonical": "oklch(87% 0.024 90)",
+        "tonalRamp": ["oklch(15% 0.024 90)", "oklch(27% 0.024 90)", "oklch(39% 0.024 90)", "oklch(51% 0.024 90)", "oklch(63% 0.024 90)", "oklch(75% 0.024 90)", "oklch(87% 0.024 90)", "oklch(95% 0.02 90)"]
+      },
+      "connector": {
+        "role": "neutral",
+        "displayName": "Connector",
+        "canonical": "oklch(60% 0.02 70)",
+        "tonalRamp": ["oklch(15% 0.02 70)", "oklch(26% 0.02 70)", "oklch(38% 0.02 70)", "oklch(49% 0.02 70)", "oklch(60% 0.02 70)", "oklch(72% 0.02 70)", "oklch(84% 0.018 74)", "oklch(95% 0.014 78)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Slide titles (h1). Upright Fraunces 600, tight tracking." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings (h2) and big diagram captions." },
+      "body": { "displayName": "Body", "purpose": "Paragraphs and list items in Ink Soft; Ink for bold emphasis." },
+      "annotation": { "displayName": "Annotation (.hand)", "purpose": "Italic Fraunces — the mentor's pencil: margin notes, punchlines, diagram arrow labels." },
+      "label": { "displayName": "Tool Chip", "purpose": "Uppercase chips naming the real tool inside diagram nodes." },
+      "kicker": { "displayName": "Kicker", "purpose": "Top-left slide frame line; topic name in terracotta." }
+    },
+    "shadows": [
+      {
+        "name": "paper-shadow",
+        "value": "5px 5px 0 0 rgba(238, 231, 214, 0.6), 5px 5px 0 2px rgba(58, 51, 42, 0.25)",
+        "purpose": "The hand-drawn drop shadow. Canonical technique: duplicate the shape, offset ~5px, fill Paper Deep at 25% opacity, place behind. This zero-blur box-shadow is the drop-in approximation. Never a blurred shadow."
+      }
+    ],
+    "motion": [
+      { "name": "ease-sketch", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Default easing: elements rise ~14px into place over 0.5–0.65s." },
+      { "name": "ease-wire", "value": "cubic-bezier(0.25, 1, 0.4, 1)", "purpose": "Connector draw-in via stroke-dashoffset, ~0.9s." },
+      { "name": "rough-draw", "value": "700ms ease-out per path, each path delayed 50% into the previous", "purpose": "Rough.vue self-drawing stroke animation; stagger `delay` across shapes so diagrams sketch in sequence. Disabled outside slide/presenter contexts (exports render fully drawn)." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Diagram Node",
+      "kind": "card",
+      "refersTo": "diagram-node",
+      "description": "Solid diagram node: plain-language Fraunces title over a real-tool chip, ink frame on paper with the hand-drawn offset shadow.",
+      "html": "<div class=\"ds-node\"><div class=\"ds-node-title\">The code&rsquo;s home</div><div class=\"ds-node-chip\">github</div></div>",
+      "css": ".ds-node { position: relative; display: inline-block; background: #f8f4e9; border: 2px solid #3a332a; border-radius: 14px; padding: 20px 24px; box-shadow: 5px 5px 0 0 rgba(238,231,214,0.6), 5px 5px 0 2px rgba(58,51,42,0.25); } .ds-node-title { font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600; color: #3a332a; margin-bottom: 8px; } .ds-node-chip { font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #c25c3b; }"
+    },
+    {
+      "name": "Hot Diagram Node",
+      "kind": "card",
+      "refersTo": "diagram-node-hot",
+      "description": "The current step's node: terracotta stroke at 2.5px. Exactly one per slide/step (The One Hot Thing Rule).",
+      "html": "<div class=\"ds-node-hot\"><div class=\"ds-node-hot-title\">Runs your app</div><div class=\"ds-node-hot-chip\">vercel</div></div>",
+      "css": ".ds-node-hot { position: relative; display: inline-block; background: #f8f4e9; border: 2.5px solid #c25c3b; border-radius: 16px; padding: 20px 24px; box-shadow: 5px 5px 0 0 rgba(238,231,214,0.6), 5px 5px 0 2px rgba(58,51,42,0.25); } .ds-node-hot-title { font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600; color: #3a332a; margin-bottom: 8px; } .ds-node-hot-chip { font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #c25c3b; }"
+    },
+    {
+      "name": "Database Node",
+      "kind": "card",
+      "refersTo": "diagram-node-db",
+      "description": "Data voice: Leaf Deep stroke and text on a pale mint fill. Green appears only on data (The Green Means Data Rule).",
+      "html": "<div class=\"ds-node-db\"><div class=\"ds-node-db-title\">The memory</div><div class=\"ds-node-db-chip\">neon &middot; database</div></div>",
+      "css": ".ds-node-db { position: relative; display: inline-block; background: #ddf2e5; border: 2px solid #23795a; border-radius: 14px; padding: 20px 24px; box-shadow: 5px 5px 0 0 rgba(238,231,214,0.6), 5px 5px 0 2px rgba(58,51,42,0.25); } .ds-node-db-title { font-family: 'Fraunces', Georgia, serif; font-size: 21px; font-weight: 600; color: #23795a; margin-bottom: 8px; } .ds-node-db-chip { font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #23795a; }"
+    },
+    {
+      "name": "Tool Chip",
+      "kind": "chip",
+      "refersTo": "tool-chip",
+      "description": "The honesty device: a small uppercase chip naming the real tool under a plain-language title.",
+      "html": "<span class=\"ds-chip\">github</span>",
+      "css": ".ds-chip { font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #c25c3b; }"
+    },
+    {
+      "name": "Arrow Label",
+      "kind": "custom",
+      "refersTo": "arrow-label",
+      "description": "Italic Fraunces label on a small paper chip so it reads on top of connector lines.",
+      "html": "<span class=\"ds-arrow-label\">deploy</span>",
+      "css": ".ds-arrow-label { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 16.5px; color: #685f52; background: rgba(248, 244, 233, 0.85); border-radius: 4px; padding: 3px 8px; }"
+    },
+    {
+      "name": "Kicker",
+      "kind": "nav",
+      "refersTo": "kicker",
+      "description": "Top-left editorial frame line on content slides; the topic name is the terracotta half.",
+      "html": "<div class=\"ds-kicker\">Vibe Coding Workshop &middot; <b>alur kerja</b></div>",
+      "css": ".ds-kicker { font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: #685f52; } .ds-kicker b { color: #c25c3b; font-weight: 600; }"
+    },
+    {
+      "name": "Hand Annotation",
+      "kind": "custom",
+      "description": "The mentor's pencil (.hand): italic Fraunces margin note, terracotta when it is the slide's one hot thing.",
+      "html": "<p class=\"ds-hand\">intinya: kamu jadi director, bukan typist &#127916;</p>",
+      "css": ".ds-hand { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 400; font-size: 20px; line-height: 1.25; color: #c25c3b; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Mentor's Sketchbook",
+    "overview": "Every slide looks like a page from a confident mentor's notebook: warm cream paper with a faint dotted grid, hand-drawn rough.js shapes that sketch themselves in as the mentor talks, serif headings with the poise of print, and italic pencil-notes in the margins. The style is the argument made visual — software is something you can sketch and reason about, not a sealed machine. Nothing glows, nothing gradients, nothing pretends to be a product screenshot; the room should feel like watching someone draw the idea live on paper.\n\nThe system explicitly rejects the corporate SaaS pitch deck (gradient heroes, screenshot grids, walls of bullets) and equally rejects childish rainbow-marker chaos. It is restrained sketchwork: ink structure with exactly one warm accent per beat, staged so a lit-room audience always knows where to look. It never claims magic — real tool names sit in small chips under plain-language titles, because honesty is the trust-builder.",
+    "keyCharacteristics": [
+      "Warm cream paper (#f8f4e9) with a 28px dotted grid; a broken modular grid replaces it on the title slide only",
+      "Self-drawing rough.js shapes (rects, ellipses, arrows) with visible wobble, staggered so diagrams sketch themselves in sequence",
+      "Fraunces serif for structure, Instrument Sans for reading, italic Fraunces for the mentor's handwriting",
+      "One terracotta emphasis per slide/step; deep green reserved for data; everything else ink",
+      "Cumulative progressive reveals — earlier elements stay visible as new ones appear",
+      "Projector-first legibility: generous sizes, strong ink-on-paper contrast, meaning never carried by color alone"
+    ],
+    "rules": [
+      { "name": "The One Hot Thing Rule", "body": "Exactly one element per slide (or per click-step) wears terracotta. If a second element needs emphasis, it waits for the next step. Everything else stays ink.", "section": "colors" },
+      { "name": "The Green Means Data Rule", "body": "Deep green appears only on data — databases, memory, storage. A green element that isn't data is a bug.", "section": "colors" },
+      { "name": "The Raw Hex Rule", "body": "Rough props and v-mark colors always receive raw hex (#c25c3b, #3a332a, #23795a, #94897a) — SVG attributes cannot resolve var().", "section": "colors" },
+      { "name": "The Two Voices Rule", "body": "Upright Fraunces speaks structure; italic Fraunces is handwriting. Body copy is never set in Fraunces, and annotations are never upright.", "section": "typography" },
+      { "name": "The Back Row Rule", "body": "The deck is read off a projector in a lit room. Body text never drops below 1.15rem on the slide canvas, labels never below 11px, and contrast never softer than Ink Soft on Paper.", "section": "typography" },
+      { "name": "The Paper Shadow Rule", "body": "Never box-shadow with blur, never glassmorphism, never a glow. If an element needs depth, duplicate its shape, offset it ~5px, fill Paper Deep at 25% opacity, and put it behind.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do pass raw hex to Rough props and v-mark (#c25c3b terracotta, #3a332a ink, #23795a green, #94897a connectors, #f4dcc8 highlight) — SVG attributes can't resolve var().",
+      "Do stagger delay values (200 → 900 → 1300 → 2000…) so multi-shape diagrams draw in sequence, never all at once.",
+      "Do keep progressive reveals cumulative: earlier elements stay visible as new ones appear; the newest element is the hot one.",
+      "Do pair every tool node's plain-language title with a real-tool chip (\"github\", \"vercel\") — honest empowerment, never mystery.",
+      "Do ease motion with cubic-bezier(0.22, 1, 0.36, 1) at 0.5–0.65s, rising ~14px into place, and respect prefers-reduced-motion in any hand-written animation (Rough.vue already handles exports).",
+      "Do keep every slide legible from the back row: body ≥1.15rem, strong ink-on-paper contrast, shape or label redundancy wherever color distinguishes."
+    ],
+    "donts": [
+      "Don't write \"no code at all\" or \"it's magic\" anywhere in slide copy — the messaging ban from the mentor cue card. This is guided, controlled building with AI.",
+      "Don't let a second element go terracotta in the same beat. One hot thing per slide/step, everything else ink.",
+      "Don't use corporate SaaS pitch-deck grammar: no gradient heroes, no product-screenshot grids, no walls of bullets (PRODUCT.md anti-reference).",
+      "Don't reintroduce rainbow-marker chaos: the legacy --sketch-* variables all alias into this restrained palette; never give red/blue/violet independent values again.",
+      "Don't add blur shadows, glows, or glassmorphism — depth is the Paper Shadow only.",
+      "Don't carry meaning by subtle color alone; the deck is judged on a projector in a lit room.",
+      "Don't add sales or program-promotion language to any slide — the deck is purely educational; offers live in what the mentor says out loud.",
+      "Don't draw connectors as straight elbow lines — every wire is a hand-drawn curve with a small arrowhead."
+    ]
+  }
+}
