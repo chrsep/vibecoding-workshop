@@ -4,11 +4,13 @@ import rough from 'roughjs'
 import { useSlideContext } from '@slidev/client'
 
 const props = defineProps({
-  // rect | ellipse | line | arrow
+  // rect | ellipse | line | arrow | curve
   shape: { type: String, default: 'rect' },
   width: { type: Number, default: 200 },
   height: { type: Number, default: 100 },
-  color: { type: String, default: '#1e1e1e' },
+  // curve only: [[x, y], ...] in local px, drawn as a smooth line through the points
+  points: { type: Array, default: () => [] },
+  color: { type: String, default: '#3a332a' },
   fill: { type: String, default: '' },
   // hachure | solid | zigzag | cross-hatch | dots | scribble
   fillStyle: { type: String, default: 'hachure' },
@@ -62,6 +64,9 @@ function build() {
   }
   else if (props.shape === 'line') {
     svg.appendChild(rc.line(pad, h / 2, w - pad, h / 2, opts))
+  }
+  else if (props.shape === 'curve') {
+    svg.appendChild(rc.curve(props.points, opts))
   }
   else if (props.shape === 'arrow') {
     const y = h / 2

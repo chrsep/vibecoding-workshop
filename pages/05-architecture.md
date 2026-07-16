@@ -1,21 +1,4 @@
 ---
-layout: center
-kicker: arsitektur
----
-
-# Apa itu code, apa itu aplikasi ✏️
-
-<p class="mt-4 text-center">Slide ini belum ditulis. Beats-nya ada di catatan presenter.</p>
-
-<!--
-TODO: tulis slide pembuka bagian ini (beats dari references/agenda.md §5):
-
-- Apa itu code, apa itu aplikasi.
-- Setelah itu masuk ke slide diagram arsitektur (sudah jadi, slide berikutnya).
-- Sengaja tetap di level arsitektur; JANGAN turun ke code.
--->
-
----
 kicker: arsitektur
 ---
 

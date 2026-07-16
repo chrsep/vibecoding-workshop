@@ -3,12 +3,10 @@ layout: center
 kicker: live demo
 ---
 
-# Live Demo ✏️
-
-<p class="mt-4 text-center">Bagian ini belum ditulis. Beats-nya ada di catatan presenter.</p>
+# Live Demo
 
 <!--
-TODO: tulis bagian ini. Beats dari references/agenda.md §6 (~35–40 menit):
+Beats dari references/agenda.md §6 (~35–40 menit):
 
 - Ide datang dari audiens, ambil inspirasi langsung dari ruangan.
 - Build apapun idenya, seberat apapun; lihat sejauh mana bisa.

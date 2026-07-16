@@ -171,12 +171,12 @@ onUnmounted(stopLoop)
     </defs>
 
     <!-- wires -->
-    <path data-wire="w-code" class="arch-wire" marker-end="url(#arch-arrow)" d="M206 148 C 268 144, 286 124, 332 116" />
+    <path data-wire="w-code" class="arch-wire" marker-end="url(#arch-arrow)" d="M226 148 C 280 144, 298 124, 332 116" />
     <path data-wire="w-data" class="arch-wire" marker-end="url(#arch-arrow)" d="M452 244 C 448 220, 446 192, 444 170" />
     <path data-wire="w-user" class="arch-wire" marker-end="url(#arch-arrow)" d="M582 108 C 650 106, 674 130, 718 140" />
 
     <!-- glowing comet tails + heads (driven by rAF) -->
-    <path data-tail="w-code" class="arch-tail" stroke="#c25c3b" filter="url(#arch-glow)" d="M206 148 C 268 144, 286 124, 332 116" />
+    <path data-tail="w-code" class="arch-tail" stroke="#c25c3b" filter="url(#arch-glow)" d="M226 148 C 280 144, 298 124, 332 116" />
     <path data-tail="w-data" class="arch-tail" stroke="#3fbd85" filter="url(#arch-glow)" d="M452 244 C 448 220, 446 192, 444 170" />
     <path data-tail="w-user" class="arch-tail" stroke="#c25c3b" filter="url(#arch-glow)" d="M582 108 C 650 106, 674 130, 718 140" />
     <circle data-head="w-code" class="arch-head" r="5" fill="#c25c3b" filter="url(#arch-glow)" />
@@ -185,8 +185,8 @@ onUnmounted(stopLoop)
 
     <!-- wire labels -->
     <g data-step="1" class="arch-label">
-      <rect x="228" y="100" width="76" height="22" rx="4" fill="#f8f4e9" opacity="0.85" />
-      <text x="238" y="116" class="arch-hand">tarik code</text>
+      <rect x="236" y="100" width="76" height="22" rx="4" fill="#f8f4e9" opacity="0.85" />
+      <text x="246" y="116" class="arch-hand">tarik code</text>
     </g>
     <g data-step="2" class="arch-label">
       <rect x="462" y="196" width="76" height="22" rx="4" fill="#f8f4e9" opacity="0.85" />
@@ -199,10 +199,11 @@ onUnmounted(stopLoop)
 
     <!-- GitHub -->
     <g data-step="0" class="arch-node">
-      <rect x="24" y="112" width="180" height="90" rx="14" fill="#eee7d6" stroke="#3a332a" stroke-width="2" transform="translate(5,5)" opacity="0.25" />
-      <rect x="24" y="112" width="180" height="90" rx="14" fill="#f8f4e9" stroke="#3a332a" stroke-width="2" class="frame" />
+      <rect x="24" y="112" width="200" height="90" rx="14" fill="#eee7d6" stroke="#3a332a" stroke-width="2" transform="translate(5,5)" opacity="0.25" />
+      <rect x="24" y="112" width="200" height="90" rx="14" fill="#f8f4e9" stroke="#3a332a" stroke-width="2" class="frame" />
       <text x="48" y="152" class="arch-title">Rumah code-mu</text>
-      <text x="48" y="180" fill="#c25c3b" class="arch-chip">github</text>
+      <path transform="translate(48 169.4) scale(0.5417)" fill="#c25c3b" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+      <text x="67" y="180" fill="#c25c3b" class="arch-chip">github</text>
     </g>
 
     <!-- Vercel -->
@@ -220,7 +221,8 @@ onUnmounted(stopLoop)
       <rect x="364" y="246" width="196" height="76" rx="14" fill="#eee7d6" stroke="#23795a" stroke-width="2" transform="translate(5,5)" opacity="0.25" />
       <rect x="364" y="246" width="196" height="76" rx="14" fill="#e8f4ec" stroke="#23795a" stroke-width="2" class="frame" />
       <text x="388" y="280" font-size="19" fill="#23795a" class="arch-title arch-title-green">Ingatan aplikasi</text>
-      <text x="388" y="306" fill="#23795a" class="arch-chip">database</text>
+      <path transform="translate(388 295.4) scale(0.5417)" fill="#23795a" d="M24 0V24l-9.365-8.045V24H0V0ZM2.942 21.087h8.751V9.563l9.365 8.204V2.919L2.942 2.914Z" />
+      <text x="407" y="306" fill="#23795a" class="arch-chip">neon · database</text>
     </g>
 
     <!-- User / phone -->
@@ -228,9 +230,9 @@ onUnmounted(stopLoop)
       <rect x="724" y="58" width="136" height="176" rx="20" fill="#eee7d6" stroke="#3a332a" stroke-width="2" transform="translate(5,5)" opacity="0.25" />
       <rect x="724" y="58" width="136" height="176" rx="20" fill="#f8f4e9" stroke="#3a332a" stroke-width="2" class="frame" />
       <rect x="768" y="70" width="48" height="6" rx="3" fill="#3a332a" opacity="0.5" />
-      <text x="748" y="132" class="arch-title arch-title-sm">Siapapun,</text>
-      <text x="748" y="154" class="arch-title arch-title-sm">di mana pun</text>
-      <text x="748" y="194" fill="#c25c3b" class="arch-chip">hp mereka</text>
+      <text x="744" y="132" class="arch-title arch-title-sm">Siapapun,</text>
+      <text x="744" y="154" class="arch-title arch-title-sm">di mana pun</text>
+      <text x="744" y="194" fill="#c25c3b" class="arch-chip">hp mereka</text>
     </g>
   </svg>
 </template>
@@ -270,6 +272,12 @@ onUnmounted(stopLoop)
   transition:
     opacity 0.5s ease 0.45s,
     transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.45s;
+}
+/* Chromium rasterizes SVG <text> before Slidev's slide-scale transform lands and
+   never re-rasterizes it, leaving glyphs painted at the wrong scale; forcing the
+   geometric path keeps text scaling with the shapes. */
+text {
+  text-rendering: geometricPrecision;
 }
 .arch-title {
   font-family: Fraunces, serif;

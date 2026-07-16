@@ -16,18 +16,10 @@ kicker: intro
         <span class="text-2xl text-ink">Apa itu Vibe Coding?</span>
       </div>
     </Reveal>
-    <Reveal :delay="1050">
-      <div class="flex items-center gap-5">
-        <Rough shape="ellipse" :width="52" :height="52" color="#3a332a" :stroke-width="2.5" :delay="1150" :seed="5">
-          <span class="font-serif font-semibold text-xl text-ink">2</span>
-        </Rough>
-        <span class="text-2xl text-ink">Kenapa sekarang?</span>
-      </div>
-    </Reveal>
     <Reveal :delay="1400">
       <div class="flex items-center gap-5">
         <Rough shape="ellipse" :width="52" :height="52" color="#3a332a" :stroke-width="2.5" :delay="1500" :seed="8">
-          <span class="font-serif font-semibold text-xl text-ink">3</span>
+          <span class="font-serif font-semibold text-xl text-ink">2</span>
         </Rough>
         <span class="text-2xl text-ink">Arsitektur dasar aplikasi</span>
       </div>
@@ -35,7 +27,7 @@ kicker: intro
     <Reveal :delay="1750">
       <div class="flex items-center gap-5">
         <Rough shape="ellipse" :width="52" :height="52" color="#c25c3b" fill="#f4dcc8" fill-style="solid" :stroke-width="2.5" :delay="1850" :seed="11">
-          <span class="font-serif font-semibold text-xl text-accent">4</span>
+          <span class="font-serif font-semibold text-xl text-accent">3</span>
         </Rough>
         <span class="text-2xl text-ink font-semibold">Live demo</span>
       </div>

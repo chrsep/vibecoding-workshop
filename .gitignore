@@ -4,3 +4,8 @@ dist-export/
 .playwright-cli/
 .DS_Store
 *.log
+.pnpm-store/
+.impeccable/
+.vercel/
+tmp/
+references/~$*
