@@ -19,7 +19,11 @@ pnpm add -D playwright-chromium
 
 ## Writing slides
 
-Slides live in `slides.md`, separated by `---`. Speaker notes go in `<!-- ... -->` at the end of a slide.
+`slides.md` is the deck entry: deck config, the title slide, and one `src:` import per
+workshop section. Slide content lives in `pages/NN-<section>.md` (one file per agenda
+section), with slides separated by `---`. Speaker notes go in `<!-- ... -->` at the end
+of a slide. To edit a section, edit only its `pages/` file; `slides.md` changes only when
+adding, reordering, or removing whole sections.
 
 ### Hand-drawn text marks (built into Slidev)
 
