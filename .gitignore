@@ -9,3 +9,5 @@ dist-export/
 .vercel/
 tmp/
 references/~$*
+.vercel
+.env*
