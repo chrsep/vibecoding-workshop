@@ -4,7 +4,7 @@ kicker: intro
 
 <div class="h-full flex flex-col pt-6">
   <Reveal :delay="100">
-    <h1>Hari ini kita bahas</h1>
+    <h1>What we'll cover today</h1>
   </Reveal>
 
   <div class="mt-10 flex flex-col gap-6">
@@ -13,7 +13,7 @@ kicker: intro
         <Rough shape="ellipse" :width="52" :height="52" color="#3a332a" :stroke-width="2.5" :delay="800" :seed="2">
           <span class="font-serif font-semibold text-xl text-ink">1</span>
         </Rough>
-        <span class="text-2xl text-ink">Apa itu Vibe Coding?</span>
+        <span class="text-2xl text-ink">What is Vibe Coding?</span>
       </div>
     </Reveal>
     <Reveal :delay="1400">
@@ -21,7 +21,7 @@ kicker: intro
         <Rough shape="ellipse" :width="52" :height="52" color="#3a332a" :stroke-width="2.5" :delay="1500" :seed="8">
           <span class="font-serif font-semibold text-xl text-ink">2</span>
         </Rough>
-        <span class="text-2xl text-ink">Arsitektur dasar aplikasi</span>
+        <span class="text-2xl text-ink">Basic app architecture</span>
       </div>
     </Reveal>
     <Reveal :delay="1750">
@@ -36,9 +36,9 @@ kicker: intro
 </div>
 
 <!--
-Sebelum slide ini, perkenalkan diri secara lisan: nama, background, apa yang dikerjakan sehari-hari.
+Before this slide, introduce yourself out loud: name, background, what you do day to day.
 
-- Jalankan agendanya singkat saja: apa itu vibe coding, kenapa baru sekarang jadi mungkin, arsitektur dasar aplikasi, lalu bagian terbesar sesi ini yaitu live demo.
-- Tekankan bahwa ide untuk demo datang dari peserta, supaya mereka mulai kepikiran dari sekarang.
-- Slide beranimasi otomatis: judul dulu, lalu baris agenda muncul satu per satu.
+- Walk through the agenda briefly: what vibe coding is, why it's only possible now, basic app architecture, then the biggest part of this session, the live demo.
+- Emphasize that the idea for the demo comes from the participants, so they start thinking about it now.
+- The slide animates automatically: the title first, then the agenda lines appear one by one.
 -->

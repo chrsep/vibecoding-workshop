@@ -3,13 +3,13 @@ theme: default
 title: Vibe Coding
 info: |
   ## Vibe Coding
-  Slide deck bergaya hand-drawn (Excalidraw style).
+  Hand-drawn style slide deck (Excalidraw style).
 transition: fade
 mdc: true
 drawings:
   persist: false
 htmlAttrs:
-  lang: id
+  lang: en
 class: title-slide
 fonts:
   sans: Instrument Sans
@@ -29,7 +29,7 @@ fonts:
 </div>
 
 <!--
-Catatan presenter: sapa peserta, perkenalan singkat.
+Presenter note: greet the participants, brief introduction.
 -->
 
 ---

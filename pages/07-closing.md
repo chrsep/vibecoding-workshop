@@ -1,16 +1,16 @@
 ---
 layout: center
-kicker: penutup
+kicker: closing
 ---
 
-# Penutup ✏️
+# Closing ✏️
 
-<p class="mt-4 text-center">Bagian ini belum ditulis. Beats-nya ada di catatan presenter.</p>
+<p class="mt-4 text-center">This section hasn't been written yet. The beats are in the speaker notes.</p>
 
 <!--
-TODO: tulis bagian ini. Beats dari references/agenda.md §7 (~5 menit):
+TODO: write this section. Beats from references/agenda.md §7 (~5 minutes):
 
-- Tunjukkan tier skill vibe coding (beginner → intermediate → advanced).
-- Posisikan workshop: "course ini membawa kamu ke intermediate".
-- Tutup dengan nada inspirasional.
+- Show the vibe coding skill tiers (beginner → intermediate → advanced).
+- Position the workshop: "this course takes you to intermediate".
+- Close on an inspirational note.
 -->

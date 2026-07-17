@@ -1,13 +1,13 @@
 ---
-kicker: arsitektur
+kicker: architecture
 ---
 
 <div class="h-full flex flex-col pt-6">
   <Reveal :delay="100">
-    <h1>Tools & arsitektur</h1>
+    <h1>Tools & architecture</h1>
   </Reveal>
   <Reveal :delay="600">
-    <p class="mt-2 mb-0 max-w-[40rem]">Kenalan dulu dengan empat tools yang akan kita pakai di demo.</p>
+    <p class="mt-2 mb-0 max-w-[40rem]">Let's meet the four tools we'll use in the demo.</p>
   </Reveal>
 
   <div class="mt-auto mb-6 flex justify-center gap-8">
@@ -22,7 +22,7 @@ kicker: arsitektur
         </Rough>
       </Reveal>
       <Reveal :delay="1300">
-        <p class="mt-3 mb-0 text-[0.9rem] leading-snug text-ink-soft">Tempat menyimpan code.</p>
+        <p class="mt-3 mb-0 text-[0.9rem] leading-snug text-ink-soft">Your code's home.</p>
       </Reveal>
     </div>
     <div class="w-[186px] text-center">
@@ -36,7 +36,7 @@ kicker: arsitektur
         </Rough>
       </Reveal>
       <Reveal :delay="1700">
-        <p class="mt-3 mb-0 text-[0.9rem] leading-snug text-ink-soft">Server untuk menjalankan aplikasinya.</p>
+        <p class="mt-3 mb-0 text-[0.9rem] leading-snug text-ink-soft">The server that runs the app.</p>
       </Reveal>
     </div>
     <div class="w-[186px] text-center">
@@ -50,7 +50,7 @@ kicker: arsitektur
         </Rough>
       </Reveal>
       <Reveal :delay="2100">
-        <p class="mt-3 mb-0 text-[0.9rem] leading-snug text-ink-soft">Database untuk menyimpan data aplikasimu.</p>
+        <p class="mt-3 mb-0 text-[0.9rem] leading-snug text-ink-soft">The database that stores your app's data.</p>
       </Reveal>
     </div>
     <div class="w-[186px] text-center">
@@ -71,48 +71,48 @@ kicker: arsitektur
 </div>
 
 <!--
-Beat slide ini: kenalan dengan empat tools sebelum melihat bagaimana mereka terhubung di slide berikutnya.
+This slide's beat: meet the four tools before we see how they connect in the next slide.
 
-- GitHub: tempat code disimpan, lengkap dengan riwayat setiap perubahan. Analogi: riwayat versi di Google Docs.
-- Vercel: server yang mengambil code dari GitHub dan menjalankannya 24 jam sehari. Di sinilah aplikasi tinggal setelah deploy.
-- Neon: database, ingatan aplikasi. Akun, catatan, dan skor disimpan di sini.
-- Codex: AI agent yang menulis code-nya. Framing sesuai cue card: kita yang mengarahkan, Codex yang mengerjakan. Code-nya tetap ada, kita hanya tidak perlu menulisnya sendiri.
-- Slide beranimasi otomatis: judul, pengantar, lalu empat kotak berurutan dari kiri. Kotak Codex sengaja terracotta: dialah yang akan kita arahkan sepanjang demo.
-- Transisi ke slide berikutnya: sekarang kita lihat bagaimana empat pemain ini terhubung jadi satu mesin.
+- GitHub: where the code lives, complete with a history of every change. Analogy: version history in Google Docs.
+- Vercel: the server that pulls the code from GitHub and runs it 24 hours a day. This is where the app lives after deploy.
+- Neon: the database, the app's memory. Accounts, records, and scores are stored here.
+- Codex: the AI agent that writes the code. Framing per the cue card: we direct, Codex does the work. The code still exists, we just don't have to write it ourselves.
+- The slide animates automatically: title, intro, then four boxes in sequence from left to right. The Codex box is deliberately terracotta: it's the one we'll be directing throughout the demo.
+- Transition to the next slide: now we see how these four players connect into one machine.
 -->
 
 ---
-kicker: arsitektur
+kicker: architecture
 ---
 
 <div class="h-full flex flex-col pt-6">
   <ArchFlow class="shrink-0" />
   <div class="relative mt-auto h-[7rem] max-w-[44rem] pb-1">
     <div v-click.hide="1" class="absolute inset-0">
-      <div class="font-serif font-semibold text-[1.9rem] leading-[1.1] tracking-[-0.01em] text-ink">Semua berawal dari code.</div>
-      <p class="mt-2 mb-0 max-w-[40rem]">Code aplikasimu disimpan di <b>GitHub</b>, lengkap dengan riwayat setiap perubahannya. Tapi code yang hanya disimpan belum menjadi aplikasi.</p>
+      <div class="font-serif font-semibold text-[1.9rem] leading-[1.1] tracking-[-0.01em] text-ink">It all starts with code.</div>
+      <p class="mt-2 mb-0 max-w-[40rem]">Your app's code is stored on <b>GitHub</b>, complete with a history of every change. But code that's just stored isn't an app yet.</p>
     </div>
     <div v-click="[1, 2]" class="absolute inset-0">
-      <div class="font-serif font-semibold text-[1.9rem] leading-[1.1] tracking-[-0.01em] text-ink">Server mengambil code-nya.</div>
-      <p class="mt-2 mb-0 max-w-[40rem]"><b>Vercel</b> mengambil code terbaru dari GitHub, lalu menjalankannya 24 jam sehari. Di sinilah aplikasimu tinggal setelah deploy.</p>
+      <div class="font-serif font-semibold text-[1.9rem] leading-[1.1] tracking-[-0.01em] text-ink">The server pulls the code.</div>
+      <p class="mt-2 mb-0 max-w-[40rem]"><b>Vercel</b> pulls the latest code from GitHub, then runs it 24 hours a day. This is where your app lives after deploy.</p>
     </div>
     <div v-click="[2, 3]" class="absolute inset-0">
-      <div class="font-serif font-semibold text-[1.9rem] leading-[1.1] tracking-[-0.01em] text-ink">Server menarik data.</div>
-      <p class="mt-2 mb-0 max-w-[40rem]">Aplikasi butuh ingatan. Akun, catatan, skor: semuanya disimpan di <b>database</b>, dan server mengambilnya setiap kali dibutuhkan.</p>
+      <div class="font-serif font-semibold text-[1.9rem] leading-[1.1] tracking-[-0.01em] text-ink">The server pulls data.</div>
+      <p class="mt-2 mb-0 max-w-[40rem]">An app needs memory. Accounts, records, scores: all of it is stored in the <b>database</b>, and the server pulls it whenever it's needed.</p>
     </div>
     <div v-click="3" class="absolute inset-0">
-      <div class="font-serif font-semibold text-[1.9rem] leading-[1.1] tracking-[-0.01em] text-ink">Hasilnya dikirim ke user.</div>
-      <p class="mt-2 mb-0 max-w-[40rem]">Siapapun yang membuka alamat aplikasimu mendapat halaman yang sudah jadi. Perhatikan arah alirannya: <b>ini mesin yang akan kita rakit di demo</b>.</p>
+      <div class="font-serif font-semibold text-[1.9rem] leading-[1.1] tracking-[-0.01em] text-ink">The result gets sent to the user.</div>
+      <p class="mt-2 mb-0 max-w-[40rem]">Anyone who opens your app's address gets a finished page. Watch the direction of the flow: <b>this is the machine we're going to assemble in the demo</b>.</p>
     </div>
   </div>
 </div>
 
 <!--
-Beat slide ini: satu diagram, empat pemain: GitHub, server (Vercel), database, dan user. Titik yang menyala menunjukkan arah aliran di setiap panah.
+This slide's beat: one diagram, four players: GitHub, the server (Vercel), the database, and the user. The lit-up dots show the direction of flow along each arrow.
 
-- Mulai: code aplikasimu disimpan di GitHub, seperti riwayat versi di Google Docs. Disimpan saja, belum ada yang berjalan.
-- [klik] Server (Vercel) menarik code terbaru dari GitHub dan menjalankannya 24 jam sehari. Setiap kali code berubah, aplikasi yang live ikut terupdate. Proses ini yang disebut deploy.
-- [klik] Aplikasi butuh ingatan. Server menarik data dari database, dan menyimpan data baru ke sana juga.
-- [klik] User membuka alamat aplikasi, server mengirim halaman yang sudah jadi. Setelah klik ini ketiga aliran menyala bergantian: code masuk, data masuk, hasil keluar.
-- Framing sesuai cue card: kita yang mengarahkan AI untuk merakit mesin ini, bukan sekadar klik "build me an app". Tetap di level arsitektur, jangan turun ke code.
+- Start: your app's code is stored on GitHub, like version history in Google Docs. Just stored, nothing running yet.
+- [click] The server (Vercel) pulls the latest code from GitHub and runs it 24 hours a day. Every time the code changes, the live app updates too. This process is called deploy.
+- [click] The app needs memory. The server pulls data from the database, and stores new data there too.
+- [click] The user opens the app's address, the server sends back a finished page. After this click all three flows light up in turn: code comes in, data comes in, the result goes out.
+- Framing per the cue card: we're the ones directing the AI to assemble this machine, not just clicking "build me an app". Stay at the architecture level, don't drop down into code.
 -->
