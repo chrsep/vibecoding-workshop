@@ -47,7 +47,3 @@ src: ./pages/05-architecture.md
 ---
 src: ./pages/06-live-demo.md
 ---
-
----
-src: ./pages/07-closing.md
----
