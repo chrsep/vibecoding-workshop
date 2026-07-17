@@ -173,7 +173,7 @@ Beat for this slide: AI's ability to complete long tasks is growing exponentiall
 -->
 
 ---
-kicker: what is vibe coding
+kicker: who this is for
 ---
 
 <div class="h-full flex flex-col pt-6">
