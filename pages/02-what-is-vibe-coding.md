@@ -226,7 +226,7 @@ Beat for this slide: one axis to map the terms, then show where this workshop si
 
 
 ---
-kicker: what is vibe coding
+kicker: tools & architecture
 ---
 
 <div class="h-full flex flex-col pt-6">

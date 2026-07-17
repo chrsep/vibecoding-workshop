@@ -1,5 +1,5 @@
 ---
-kicker: architecture
+kicker: tools & architecture
 ---
 
 <div class="h-full flex flex-col pt-6">
@@ -82,7 +82,7 @@ This slide's beat: meet the four tools before we see how they connect in the nex
 -->
 
 ---
-kicker: architecture
+kicker: tools & architecture
 ---
 
 <div class="h-full flex flex-col pt-6">
