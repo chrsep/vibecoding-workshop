@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "slidev --open false",
     "build": "slidev build",
-    "export:pdf": "slidev export --wait 5000 --output dist-export/vibecoding-workshop.pdf",
+    "export:pdf": "slidev export --wait 10000 --output dist-export/vibecoding-workshop.pdf",
     "export:pptx": "slidev export --format pptx --output dist-export/vibecoding-workshop.pptx"
   },
   "dependencies": {

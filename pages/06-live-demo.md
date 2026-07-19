@@ -14,3 +14,38 @@ Beats dari references/agenda.md §6 (~35–40 menit):
 - Goal 2: kumpulkan feedback audiens dan iterasi ke arah yang lebih kompleks, sejauh waktu memungkinkan.
 - Framing (dari cue card): demo ini soal mengarahkan AI, bukan klik "build me an app".
 -->
+
+---
+layout: center
+kicker: resources
+---
+
+<div class="flex flex-col items-center text-center">
+  <h1 class="mb-0">Resources</h1>
+
+  <Rough
+    shape="rect"
+    :width="252"
+    :height="252"
+    color="#c25c3b"
+    fill="#f8f4e9"
+    fill-style="solid"
+    :stroke-width="2.75"
+    :roughness="1.5"
+    :seed="11"
+    :delay="180"
+  >
+    <img
+      src="/vibe-coding-qr.svg"
+      alt="QR code menuju chrsep.dev/vibe-coding"
+      class="block h-[218px] w-[218px]"
+    />
+  </Rough>
+
+  <a href="https://chrsep.dev/vibe-coding" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-2 font-sans text-[1.05rem] font-semibold text-ink"><span class="underline decoration-[1.5px] underline-offset-[5px]">chrsep.dev/vibe-coding</span><span aria-hidden="true" class="text-ink-soft">↗</span></a>
+</div>
+
+<!--
+Tampilkan slide ini setelah live demo selesai. Beri waktu peserta untuk scan QR code.
+Untuk versi handout PDF, QR code dan URL di bawahnya sama-sama dapat diklik.
+-->
