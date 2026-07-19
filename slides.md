@@ -18,7 +18,7 @@ fonts:
   italic: true
 ---
 
-<ExponentialSpiral :scale="1.28" :speed="0.2" />
+<ExponentialSpiral :scale="1.28" :speed="0.35" />
 
 <div class="relative z-[1] h-full flex flex-col items-center justify-center text-center">
 
