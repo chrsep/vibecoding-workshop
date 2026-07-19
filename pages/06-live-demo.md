@@ -42,7 +42,9 @@ kicker: resources
     />
   </Rough>
 
-  <a href="https://chrsep.dev/vibe-coding" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-2 font-sans text-[1.05rem] font-semibold text-ink"><span class="underline decoration-[1.5px] underline-offset-[5px]">chrsep.dev/vibe-coding</span><span aria-hidden="true" class="text-ink-soft">↗</span></a>
+  <p class="mt-3 mb-0 font-sans text-[1.05rem] text-ink-soft">Ringkasan workshop, link penting, transkrip agent, dan lainnya.</p>
+
+  <a href="https://chrsep.dev/vibe-coding" target="_blank" rel="noopener noreferrer" class="mt-1.5 inline-flex items-center gap-2 font-sans text-[1.05rem] font-semibold text-ink"><span class="underline decoration-[1.5px] underline-offset-[5px]">chrsep.dev/vibe-coding</span><span aria-hidden="true" class="text-ink-soft">↗</span></a>
 </div>
 
 <!--
