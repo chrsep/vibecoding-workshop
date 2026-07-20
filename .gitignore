@@ -11,3 +11,4 @@ tmp/
 references/~$*
 .vercel
 .env*
+.env

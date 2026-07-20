@@ -20,6 +20,26 @@ layout: center
 kicker: resources
 ---
 
+<script setup>
+import { watch } from 'vue'
+import { useIsSlideActive } from '@slidev/client'
+import posthog from 'posthog-js'
+
+const isActive = useIsSlideActive()
+let tracked = false
+
+watch(isActive, (active) => {
+  if (active && !tracked) {
+    tracked = true
+    posthog.capture('resources_slide_reached')
+  }
+}, { immediate: true })
+
+function handleResourcesLinkClick() {
+  posthog.capture('resources_link_clicked')
+}
+</script>
+
 <div class="flex flex-col items-center text-center">
   <h1 class="mb-0">Resources</h1>
 
@@ -44,7 +64,7 @@ kicker: resources
 
   <p class="mt-3 mb-0 font-sans text-sm text-ink-soft">Ringkasan, links, agents sessions, dll</p>
 
-  <a href="https://chrsep.dev/vibe-coding" target="_blank" rel="noopener noreferrer" class="mt-1.5 inline-flex items-center gap-2 font-sans text-[1.05rem] font-semibold text-ink"><span class="underline decoration-[1.5px] underline-offset-[5px]">chrsep.dev/vibe-coding</span><span aria-hidden="true" class="text-ink-soft">↗</span></a>
+  <a href="https://chrsep.dev/vibe-coding" target="_blank" rel="noopener noreferrer" class="mt-1.5 inline-flex items-center gap-2 font-sans text-[1.05rem] font-semibold text-ink" @click="handleResourcesLinkClick"><span class="underline decoration-[1.5px] underline-offset-[5px]">chrsep.dev/vibe-coding</span><span aria-hidden="true" class="text-ink-soft">↗</span></a>
 </div>
 
 <!--
